@@ -18,9 +18,9 @@ type User struct {
 	// full description https://core.telegram.org/bots/api#user
 
 	Id int  `json:"id"`
-	Is_bot bool  `json:"is_bot"`
-	First_name string  `json:"first_name"`
-	Last_name string  `json:"last_name"`
+	IsBot bool  `json:"is_bot"`
+	FirstName string  `json:"first_name"`
+	LastName string  `json:"last_name"`
 	Username string  `json:"username"`
 
 }
@@ -28,13 +28,13 @@ type User struct {
 type Message struct {
 	Message_id int  `json:"message_id"`
 	From User  `json:"from"`
-	Sender_chat Chat  `json:"sender_chat"`
+	SenderChat Chat  `json:"sender_chat"`
 	Text string  `json:"text"`
 }
 
 
 type Update struct {
-	Update_id int `json:"update_id"`
+	UpdateId int `json:"update_id"`
 	MessageInfo Message `json:"message"`
 }
 

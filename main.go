@@ -7,6 +7,7 @@ import (
 	//"net/http"
 
 	"fmt"
+	"os"
 
 	"github.com/joho/godotenv"
 	"celebot/telegram/api"
@@ -22,5 +23,6 @@ func init() {
 
 func main() {
 	fmt.Printf("start polling")
-	telegram.LongPolling()
+	token := os.Getenv("BOTTOKEN")
+	telegram.StartPolling(token)
 }
