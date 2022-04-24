@@ -1,13 +1,15 @@
 package main
 
 import (
-	"os"
-	"io/ioutil"
+	//"os"
+	//"io/ioutil"
 	"log"
-	"net/http"
+	//"net/http"
+
+	"fmt"
 
 	"github.com/joho/godotenv"
-	"telegram/api"
+	"celebot/telegram/api"
 )
 
 
@@ -19,5 +21,6 @@ func init() {
 }
 
 func main() {
-
+	fmt.Printf("start polling")
+	telegram.LongPolling()
 }
