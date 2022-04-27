@@ -8,14 +8,13 @@ import (
 	"strconv"
 
 	"encoding/json"
-	"celebot/telegram/models"
 )
 
 const TELEGRAMBOTURL = "https://api.telegram.org/bot"
 
 
-func sendMessage(token, chatId, text string) *telegram.Message {
-	res := telegram.Message {}
+func sendMessage(token, chatId, text string) *Message {
+	res := Message {}
 	url := TELEGRAMBOTURL +
 	       token + "/" +
 		   "sendMessage" +
@@ -42,14 +41,14 @@ func sendMessage(token, chatId, text string) *telegram.Message {
 }
 
 
-func getUpdates(token string) *telegram.UpdateResponse {
+func getUpdates(token string) *UpdateResponse {
 	url := TELEGRAMBOTURL +
 		    token + "/" +
 			"getUpdates" +
 			"?timeout=5" +
 			"&limit=1"
 
-	res := telegram.UpdateResponse {}
+	res := UpdateResponse{}
 
 	resp, err := http.Get(url)
 

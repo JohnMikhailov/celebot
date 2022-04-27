@@ -10,7 +10,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"celebot/telegram/api"
+	"github.com/meehighlov/celebot/telegram"
 )
 
 
