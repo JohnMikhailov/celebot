@@ -29,17 +29,31 @@ type Message struct {
 	Message_id int  `json:"message_id"`
 	From User  `json:"from"`
 	SenderChat Chat  `json:"sender_chat"`
+	Chat Chat `json:"chat"`
 	Text string  `json:"text"`
 }
 
 
 type Update struct {
 	UpdateId int `json:"update_id"`
-	MessageInfo Message `json:"message"`
+	Message Message `json:"message"`
 }
 
 
 type UpdateResponse struct {
 	Ok bool `json:"ok"`
 	Result []Update `json:"result"`
+}
+
+
+type ResponseParameters struct {
+	MigrateToChatId int `json:"migrate_to_chat_id"`
+	RetryAfter int `json:"retry_after"`
+}
+
+
+type ErrorResponse struct {
+	Ok bool `json:"ok"`
+	Description string `json:"description"`
+	Parameters ResponseParameters  `json:"parameters"`
 }
