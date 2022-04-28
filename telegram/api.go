@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"fmt"
 	"strconv"
+	// "time"
 
 	"encoding/json"
 )
@@ -41,16 +42,19 @@ func sendMessage(token, chatId, text string) *Message {
 }
 
 
-func getUpdates(token string) *UpdateResponse {
+func getUpdates(token string, client *http.Client, updatesOffset int) *UpdateResponse {
 	url := TELEGRAMBOTURL +
 		    token + "/" +
 			"getUpdates" +
-			"?timeout=5" +
-			"&limit=1"
+			"?timeout=10" +
+			"&limit=1" +
+			"&offset=" + strconv.Itoa(updatesOffset)
+
+	// url += "&" + strconv.Itoa(updatesOffset)
 
 	res := UpdateResponse{}
 
-	resp, err := http.Get(url)
+	resp, err := client.Get(url)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -71,11 +75,18 @@ func getUpdates(token string) *UpdateResponse {
 
 
 func StartPolling(token string) {
+	updatesClient := http.Client{}
+	updatesOffset := -1
 	for {
-		updates := getUpdates(token)
-		chatId := strconv.Itoa(updates.Result[0].MessageInfo.SenderChat.Id)
-		text := "hello"
-		message := sendMessage(token, chatId, text)
-		fmt.Print(message.Text)
+		updates := getUpdates(token, &updatesClient, updatesOffset)
+		// chatId := strconv.Itoa(updates.Result[0].MessageInfo.SenderChat.Id)
+		// text := "hello"
+		// message := sendMessage(token, chatId, text)
+		if len(updates.Result) > 0 {
+			updatesOffset = updates.Result[0].UpdateId + 1
+			fmt.Print(updates.Result[0].MessageInfo.Text)
+		} else {
+			fmt.Print("no updates yet\n")
+		}
 	}
 }
