@@ -14,6 +14,6 @@ import (
 
 func main() {
 	fmt.Printf("start polling")
-	token := app.Get("BOTTOKEN")
+	token := app.GetConfig().BOTTOKEN
 	telegram.StartPolling(token)
 }
