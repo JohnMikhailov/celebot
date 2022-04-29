@@ -11,13 +11,15 @@ import (
 	"encoding/json"
 )
 
-const TELEGRAMBOTURL = "https://api.telegram.org/bot"
+const TelegramBotApiUrl = "https://api.telegram.org/bot"
+
+var updatesClient = http.Client{}
 
 
 func sendMessage(token, chatId, text string) *Message {
 	res := Message {}
 	errorRes := ErrorResponse{}
-	url := TELEGRAMBOTURL + token + "/sendMessage"
+	url := TelegramBotApiUrl + token + "/sendMessage"
 
 	body := map[string]string{"chat_id": chatId, "text": text}
 	json_data, err := json.Marshal(body)
@@ -50,9 +52,8 @@ func sendMessage(token, chatId, text string) *Message {
 	return &res
 }
 
-
-func getUpdates(token string, client *http.Client, updatesOffset int) *UpdateResponse {
-	url := TELEGRAMBOTURL +
+func getUpdates(token string, updatesOffset int) *UpdateResponse {
+	url := TelegramBotApiUrl +
 		    token + "/" +
 			"getUpdates" +
 			"?timeout=10" +
@@ -61,7 +62,7 @@ func getUpdates(token string, client *http.Client, updatesOffset int) *UpdateRes
 
 	res := UpdateResponse{}
 
-	resp, err := client.Get(url)
+	resp, err := updatesClient.Get(url)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -80,19 +81,22 @@ func getUpdates(token string, client *http.Client, updatesOffset int) *UpdateRes
 	return &res
 }
 
-
 func StartPolling(token string) {
-	updatesClient := http.Client{}
 	updatesOffset := -1
+
+	// TODO: support another types of handlers
 	for {
-		updates := getUpdates(token, &updatesClient, updatesOffset)
+		updates := getUpdates(token, updatesOffset)
 		if len(updates.Result) > 0 {
 			updatesOffset = updates.Result[0].UpdateId + 1
 			fmt.Print(updates.Result[0].Message.Text)
 
-			chatId := strconv.Itoa(updates.Result[0].Message.Chat.Id)
-		    text := updates.Result[0].Message.Text
-		    sendMessage(token, chatId, text)
+		    message := updates.Result[0].Message
+
+			// chatId := strconv.Itoa(updates.Result[0].Message.Chat.Id)
+
+			HandleTextCommand(message)
+
 		} else {
 			fmt.Print("no updates yet\n")
 		}
