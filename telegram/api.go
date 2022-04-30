@@ -15,17 +15,7 @@ const TelegramBotApiUrl = "https://api.telegram.org/bot"
 
 var updatesClient = http.Client{}
 
-
-type telegramBot struct {
-	TOKEN string
-	textCommandHandlers map[string]TextCommandHandler
-}
-
-func NewBot(token string) telegramBot {
-	return telegramBot{TOKEN: token, textCommandHandlers: map[string]TextCommandHandler{}}
-}
-
-func (bot telegramBot) SendMessage(chatId, text string) *Message {
+func (bot telegramBot) sendMessage(chatId, text string) *Message {
 	res := Message {}
 	errorRes := ErrorResponse{}
 	url := TelegramBotApiUrl + bot.TOKEN + "/sendMessage"

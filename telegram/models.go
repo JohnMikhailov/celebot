@@ -1,7 +1,10 @@
 package telegram
 
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 
 type Chat struct {
@@ -63,4 +66,8 @@ type ErrorResponse struct {
 
 func (message Message) GetChatIdStr() string {
 	return strconv.Itoa(message.Chat.Id)
+}
+
+func (message Message) getCommand() string {
+	return strings.Fields(message.Text)[0]
 }
