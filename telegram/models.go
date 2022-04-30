@@ -1,6 +1,9 @@
 package telegram
 
 
+import "strconv"
+
+
 type Chat struct {
 	// full description https://core.telegram.org/bots/api#chat
 
@@ -58,7 +61,6 @@ type ErrorResponse struct {
 	Parameters ResponseParameters  `json:"parameters"`
 }
 
-
-
-
-
+func (message Message) GetChatIdStr() string {
+	return strconv.Itoa(message.Chat.Id)
+}

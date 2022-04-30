@@ -46,10 +46,14 @@ func sendMessage(token, chatId, text string) *Message {
 		json.Unmarshal([]byte(bodyString), &res)
 	} else {
 		json.Unmarshal([]byte(bodyString), &errorRes)
-		fmt.Print(errorRes.Description)
+		fmt.Println(errorRes.Description)
 	}
 
 	return &res
+}
+
+func SendMessage(token, chatId, text string) *Message {
+	return sendMessage(token, chatId, text)
 }
 
 func getUpdates(token string, updatesOffset int) *UpdateResponse {
@@ -83,22 +87,16 @@ func getUpdates(token string, updatesOffset int) *UpdateResponse {
 
 func StartPolling(token string) {
 	updatesOffset := -1
-
+	fmt.Println("start polling")
 	// TODO: support another types of handlers
 	for {
 		updates := getUpdates(token, updatesOffset)
 		if len(updates.Result) > 0 {
 			updatesOffset = updates.Result[0].UpdateId + 1
-			fmt.Print(updates.Result[0].Message.Text)
-
 		    message := updates.Result[0].Message
-
-			// chatId := strconv.Itoa(updates.Result[0].Message.Chat.Id)
-
-			HandleTextCommand(message)
-
+			ProcessMessage(message)
 		} else {
-			fmt.Print("no updates yet\n")
+			fmt.Println("no updates yet\n")
 		}
 	}
 }
