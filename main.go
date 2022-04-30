@@ -8,12 +8,11 @@ import (
 	"github.com/meehighlov/celebot/app"
 )
 
-
 type StartCommand struct {}
 
+
 func (handler StartCommand) HandleTextCommand(params map[string]string, message telegram.Message) {
-	telegram.SendMessage(
-		app.GetConfig().BOTTOKEN,
+	bot.SendMessage(
 		message.GetChatIdStr(),
 		"Hello, i'm celebot! Tell me about your friends birthdays and i will remind you about it ;)",
 	)
@@ -21,7 +20,7 @@ func (handler StartCommand) HandleTextCommand(params map[string]string, message 
 
 func main() {
 	token := app.GetConfig().BOTTOKEN
-
-	telegram.AddTextHandler("start", StartCommand{})
-	telegram.StartPolling(token)
+	bot := telegram.NewBot(token)
+	bot.AddTextHandler("start", StartCommand{})
+	bot.StartPolling()
 }

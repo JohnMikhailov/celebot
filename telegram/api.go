@@ -16,10 +16,19 @@ const TelegramBotApiUrl = "https://api.telegram.org/bot"
 var updatesClient = http.Client{}
 
 
-func sendMessage(token, chatId, text string) *Message {
+type telegramBot struct {
+	TOKEN string
+	textCommandHandlers map[string]TextCommandHandler
+}
+
+func NewBot(token string) telegramBot {
+	return telegramBot{TOKEN: token, textCommandHandlers: map[string]TextCommandHandler{}}
+}
+
+func (bot telegramBot) SendMessage(chatId, text string) *Message {
 	res := Message {}
 	errorRes := ErrorResponse{}
-	url := TelegramBotApiUrl + token + "/sendMessage"
+	url := TelegramBotApiUrl + bot.TOKEN + "/sendMessage"
 
 	body := map[string]string{"chat_id": chatId, "text": text}
 	json_data, err := json.Marshal(body)
@@ -52,13 +61,9 @@ func sendMessage(token, chatId, text string) *Message {
 	return &res
 }
 
-func SendMessage(token, chatId, text string) *Message {
-	return sendMessage(token, chatId, text)
-}
-
-func getUpdates(token string, updatesOffset int) *UpdateResponse {
+func (bot telegramBot) getUpdates(updatesOffset int) *UpdateResponse {
 	url := TelegramBotApiUrl +
-		    token + "/" +
+	bot.TOKEN + "/" +
 			"getUpdates" +
 			"?timeout=10" +
 			"&limit=1" +
@@ -85,18 +90,18 @@ func getUpdates(token string, updatesOffset int) *UpdateResponse {
 	return &res
 }
 
-func StartPolling(token string) {
+func (bot telegramBot) StartPolling() {
 	updatesOffset := -1
 	fmt.Println("start polling")
 	// TODO: support another types of handlers
 	for {
-		updates := getUpdates(token, updatesOffset)
+		updates := bot.getUpdates(updatesOffset)
 		if len(updates.Result) > 0 {
 			updatesOffset = updates.Result[0].UpdateId + 1
 		    message := updates.Result[0].Message
-			ProcessMessage(message)
+			bot.processMessage(message)
 		} else {
-			fmt.Println("no updates yet\n")
+			fmt.Println("no updates yet")
 		}
 	}
 }

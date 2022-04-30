@@ -5,50 +5,51 @@ import (
 	"strings"
 )
 
-type commandHandlers struct {
-	textCommandHandlers map[string]TextCommandHandler
-}
-
-var registeredCommandHandlers = commandHandlers{textCommandHandlers: map[string]TextCommandHandler{}}
-
 type TextCommandHandler interface {
-	HandleTextCommand(params map[string]string, message Message)
+	HandleTextCommand(bot telegramBot, params map[string]string, message Message)
 }
 
-func (handlers commandHandlers) addTextHandler(textCommand string, handler TextCommandHandler) {
-	handlers.textCommandHandlers[textCommand] = handler
+type MessageProcessor interface {
+	ProcessMessage(message Message)
 }
 
-func AddTextHandler(textCommand string, handler TextCommandHandler) {
-	registeredCommandHandlers.addTextHandler(textCommand, handler)
-}
-
-func (handlers commandHandlers) handlerExists(commandName string) bool {
-	if _, ok := handlers.textCommandHandlers[commandName]; ok {
-		return true	
+func (bot telegramBot) AddTextHandler(textCommand string, handler TextCommandHandler) {
+	if bot.textCommandHandlers == nil {
+		bot.textCommandHandlers = make(map[string]TextCommandHandler)
+		fmt.Println("handlers map is empty, created")
 	}
+	bot.textCommandHandlers[textCommand] = handler
+	fmt.Println(bot.textCommandHandlers)
+}
 
+func (bot telegramBot) handlerExists(commandName string) bool {
+	if bot.textCommandHandlers == nil {
+		fmt.Println("pizdeeeeeeeec")
+	}
+	if _, ok := bot.textCommandHandlers[commandName]; ok {
+		return true
+	}
 	return false
 }
 
-func (handlers commandHandlers) getTextHandlerByCommand(commandName string) TextCommandHandler {
-	if !handlers.handlerExists(commandName) {
+func (bot telegramBot) getTextHandlerByCommand(commandName string) TextCommandHandler {
+	if !bot.handlerExists(commandName) {
 		return nil
 	}
-	val, _ := handlers.textCommandHandlers[commandName]
+	val, _ := bot.textCommandHandlers[commandName]
 	return val
 }
 
-func ProcessMessage(message Message) {
+func (bot telegramBot) processMessage(message Message) {
 	command, params := prepareTextCommand(message.Text)
 
-	if !registeredCommandHandlers.handlerExists(command) {
+	if !bot.handlerExists(command) {
 		fmt.Println("Command handler not registered! Skiping message")
 		return
 	}
 
-	handler := registeredCommandHandlers.getTextHandlerByCommand(command)
-	handler.HandleTextCommand(params, message)
+	handler := bot.getTextHandlerByCommand(command)
+	handler.HandleTextCommand(bot, params, message)
 }
 
 func prepareTextCommand(textCommand string) (string, map[string]string) {
