@@ -1,8 +1,5 @@
 package telegram
 
-import (
-	"fmt"
-)
 
 type EventHandler interface {
 	OnEvent(e Event)
@@ -14,36 +11,32 @@ type Event struct {
 }
 
 func (e Event) SendMessage(text, chatId string) *Message {
-	return e.bot.sendMessage(text, chatId)
+	return e.bot.client.sendMessage(text, chatId)
 }
 
-func (bot telegramBot) AddEventHandler(textCommand string, handler EventHandler) {
-	bot.handlers[textCommand] = handler
+type handlersRegistry struct {
+	handlers map[string]EventHandler
 }
 
-func (bot telegramBot) handlerExists(commandName string) bool {
-	if _, ok := bot.handlers[commandName]; ok {
+func newHandlersRegistry() handlersRegistry {
+	return handlersRegistry{handlers: map[string]EventHandler{}}
+}
+
+func (registry handlersRegistry) addEventHandler(textCommand string, handler EventHandler) {
+	registry.handlers[textCommand] = handler
+}
+
+func (registry handlersRegistry) handlerExists(commandName string) bool {
+	if _, ok := registry.handlers[commandName]; ok {
 		return true
 	}
 	return false
 }
 
-func (bot telegramBot) getTextHandlerByCommand(commandName string) EventHandler {
-	if !bot.handlerExists(commandName) {
+func (registry handlersRegistry) getTextHandlerByCommand(commandName string) EventHandler {
+	if !registry.handlerExists(commandName) {
 		return nil
 	}
-	val, _ := bot.handlers[commandName]
+	val, _ := registry.handlers[commandName]
 	return val
-}
-
-func (bot telegramBot) processMessage(message Message) {
-	command := message.getCommand()
-	if !bot.handlerExists(command) {
-		fmt.Println("Command handler not registered! Skiping message")
-		return
-	}
-
-	handler := bot.getTextHandlerByCommand(command)
-	event := Event{bot: bot, Message: message}
-	handler.OnEvent(event)
 }

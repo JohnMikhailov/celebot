@@ -11,14 +11,19 @@ import (
 	"encoding/json"
 )
 
-const TelegramBotApiUrl = "https://api.telegram.org/bot"
+type apiClient struct {
+	urlHead string
+	token string
+}
 
-var updatesClient = http.Client{}
+func newApiClient(token string) apiClient {
+	return apiClient{token: token, urlHead: "https://api.telegram.org/bot"}
+}
 
-func (bot telegramBot) sendMessage(chatId, text string) *Message {
+func (client apiClient) sendMessage(chatId, text string) *Message {
 	res := Message {}
 	errorRes := ErrorResponse{}
-	url := TelegramBotApiUrl + bot.TOKEN + "/sendMessage"
+	url := client.urlHead + client.token + "/sendMessage"
 
 	body := map[string]string{"chat_id": chatId, "text": text}
 	json_data, err := json.Marshal(body)
@@ -51,9 +56,9 @@ func (bot telegramBot) sendMessage(chatId, text string) *Message {
 	return &res
 }
 
-func (bot telegramBot) getUpdates(updatesOffset int) *UpdateResponse {
-	url := TelegramBotApiUrl +
-	bot.TOKEN + "/" +
+func (client apiClient) getUpdates(updatesOffset int) *UpdateResponse {
+	url := client.urlHead +
+	client.token + "/" +
 			"getUpdates" +
 			"?timeout=10" +
 			"&limit=1" +
@@ -61,7 +66,7 @@ func (bot telegramBot) getUpdates(updatesOffset int) *UpdateResponse {
 
 	res := UpdateResponse{}
 
-	resp, err := updatesClient.Get(url)
+	resp, err := http.Get(url)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -78,20 +83,4 @@ func (bot telegramBot) getUpdates(updatesOffset int) *UpdateResponse {
 	}
 
 	return &res
-}
-
-func (bot telegramBot) StartPolling() {
-	updatesOffset := -1
-	fmt.Println("start polling")
-	// TODO: support another types of handlers
-	for {
-		updates := bot.getUpdates(updatesOffset)
-		if len(updates.Result) > 0 {
-			updatesOffset = updates.Result[0].UpdateId + 1
-		    message := updates.Result[0].Message
-			bot.processMessage(message)
-		} else {
-			fmt.Println("no updates yet")
-		}
-	}
 }
