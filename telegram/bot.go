@@ -41,10 +41,10 @@ func (bot telegramBot) processMessage(message Message) {
 	}
 
 	handler := bot.handlersRegistry.getTextHandlerByCommand(command)
-	event := Event{bot: bot, Message: message}
-	handler.OnEvent(event)
+	context := Context{bot: bot, Message: message}
+	handler.Handle(context)
 }
 
-func (bot telegramBot) AddEventHandler(textCommand string, handler EventHandler) {
+func (bot telegramBot) AddEventHandler(textCommand string, handler MessageHandler) {
 	bot.handlersRegistry.addEventHandler(textCommand, handler)
 }

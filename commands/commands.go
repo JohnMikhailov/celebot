@@ -10,9 +10,9 @@ import (
 type StartCommand struct {}
 
 
-func (handler StartCommand) OnEvent(event telegram.Event) {
-	event.SendMessage(
-		event.Message.GetChatIdStr(),
+func (handler StartCommand) Handle(c telegram.Context) {
+	c.SendMessage(
+		c.Message.GetChatIdStr(),
 		"Hello, i'm celebot! Tell me about your friends birthdays and i will remind you about it ;)",
 	)
 }
@@ -21,14 +21,14 @@ func (handler StartCommand) OnEvent(event telegram.Event) {
 type AddPersonCommand struct {}
 
 
-func (handler AddPersonCommand) OnEvent(event telegram.Event) {
-	params := getCommandParams(event.Message.Text)
+func (handler AddPersonCommand) Handle(c telegram.Context) {
+	params := getCommandParams(c.Message.Text)
 	name := params["name"]
 	bd := params["bd"]
 
 	text := fmt.Sprintf("Added new person: %s birth date: %s", name, bd)
-	event.SendMessage(
-		event.Message.GetChatIdStr(),
+	c.SendMessage(
+		c.Message.GetChatIdStr(),
 		text,
 	)
 }

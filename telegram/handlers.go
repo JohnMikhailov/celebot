@@ -2,14 +2,14 @@ package telegram
 
 
 type handlersRegistry struct {
-	handlers map[string]EventHandler
+	handlers map[string]MessageHandler
 }
 
 func newHandlersRegistry() handlersRegistry {
-	return handlersRegistry{handlers: map[string]EventHandler{}}
+	return handlersRegistry{handlers: map[string]MessageHandler{}}
 }
 
-func (registry handlersRegistry) addEventHandler(textCommand string, handler EventHandler) {
+func (registry handlersRegistry) addEventHandler(textCommand string, handler MessageHandler) {
 	registry.handlers[textCommand] = handler
 }
 
@@ -20,7 +20,7 @@ func (registry handlersRegistry) handlerExists(commandName string) bool {
 	return false
 }
 
-func (registry handlersRegistry) getTextHandlerByCommand(commandName string) EventHandler {
+func (registry handlersRegistry) getTextHandlerByCommand(commandName string) MessageHandler {
 	if !registry.handlerExists(commandName) {
 		return nil
 	}
