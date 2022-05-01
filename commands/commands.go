@@ -33,7 +33,7 @@ func (handler AddPersonCommand) OnEvent(event telegram.Event) {
 	)
 }
 
-func getCommandParams (text string) map[string]string {
+func getCommandParams(text string) map[string]string {
 	// command syntax: command param1=value1 param2=value2
 	fmt.Println("raw message text:", text)
 	trancatedCommand := strings.Fields(text)
