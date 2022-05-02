@@ -6,8 +6,7 @@ import (
 	"strings"
 )
 
-
-type Chat struct {
+type chat struct {
 	// full description https://core.telegram.org/bots/api#chat
 
 	Id int `json:"id"`
@@ -20,7 +19,7 @@ type Chat struct {
 
 }
 
-type User struct {
+type user struct {
 	// full description https://core.telegram.org/bots/api#user
 
 	Id int  `json:"id"`
@@ -31,43 +30,39 @@ type User struct {
 
 }
 
-type Message struct {
+type message struct {
 	Message_id int  `json:"message_id"`
-	From User  `json:"from"`
-	SenderChat Chat  `json:"sender_chat"`
-	Chat Chat `json:"chat"`
+	From user  `json:"from"`
+	SenderChat chat  `json:"sender_chat"`
+	Chat chat `json:"chat"`
 	Text string  `json:"text"`
 }
 
-
-type Update struct {
+type update struct {
 	UpdateId int `json:"update_id"`
-	Message Message `json:"message"`
+	Message message `json:"message"`
 }
 
-
-type UpdateResponse struct {
+type updateResponse struct {
 	Ok bool `json:"ok"`
-	Result []Update `json:"result"`
+	Result []update `json:"result"`
 }
 
-
-type ResponseParameters struct {
+type responseParameters struct {
 	MigrateToChatId int `json:"migrate_to_chat_id"`
 	RetryAfter int `json:"retry_after"`
 }
 
-
-type ErrorResponse struct {
+type errorResponse struct {
 	Ok bool `json:"ok"`
 	Description string `json:"description"`
-	Parameters ResponseParameters  `json:"parameters"`
+	Parameters responseParameters  `json:"parameters"`
 }
 
-func (message Message) GetChatIdStr() string {
+func (message message) GetChatIdStr() string {
 	return strconv.Itoa(message.Chat.Id)
 }
 
-func (message Message) getCommand() string {
+func (message message) getCommand() string {
 	return strings.Fields(message.Text)[0]
 }

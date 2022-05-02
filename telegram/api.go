@@ -20,9 +20,9 @@ func newApiClient(token string) apiClient {
 	return apiClient{token: token, urlHead: "https://api.telegram.org/bot"}
 }
 
-func (client apiClient) sendMessage(chatId, text string) *Message {
-	res := Message {}
-	errorRes := ErrorResponse{}
+func (client apiClient) sendMessage(chatId, text string) *message {
+	res := message {}
+	errorRes := errorResponse{}
 	url := client.urlHead + client.token + "/sendMessage"
 
 	body := map[string]string{"chat_id": chatId, "text": text}
@@ -56,7 +56,7 @@ func (client apiClient) sendMessage(chatId, text string) *Message {
 	return &res
 }
 
-func (client apiClient) getUpdates(updatesOffset int) *UpdateResponse {
+func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
 	url := client.urlHead +
 	client.token + "/" +
 			"getUpdates" +
@@ -64,7 +64,7 @@ func (client apiClient) getUpdates(updatesOffset int) *UpdateResponse {
 			"&limit=1" +
 			"&offset=" + strconv.Itoa(updatesOffset)
 
-	res := UpdateResponse{}
+	res := updateResponse{}
 
 	resp, err := http.Get(url)
 

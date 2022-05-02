@@ -7,9 +7,9 @@ type MessageHandler interface {
 
 type Context struct {
 	bot telegramBot
-	Message Message
+	Message message
 }
 
-func (c Context) SendMessage(text, chatId string) *Message {
+func (c Context) SendMessage(text, chatId string) *message {
 	return c.bot.client.sendMessage(text, chatId)
 }

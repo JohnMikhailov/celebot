@@ -33,7 +33,7 @@ func (bot telegramBot) StartPolling() {
 	}
 }
 
-func (bot telegramBot) processMessage(message Message) {
+func (bot telegramBot) processMessage(message message) {
 	command := message.getCommand()
 	if !bot.handlersRegistry.handlerExists(command) {
 		fmt.Println("Command handler not registered! Skiping message")
