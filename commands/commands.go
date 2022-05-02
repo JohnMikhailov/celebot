@@ -54,7 +54,7 @@ func (handler ShowMeCommand) Handle(c telegram.Context) {
 
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
-		"me:" + user.TGusername,
+		"your username is: " + user.TGusername,
 	)
 }
 

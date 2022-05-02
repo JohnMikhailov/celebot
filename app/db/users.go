@@ -4,8 +4,8 @@ package db
 import "fmt"
 
 
-func (user User) Save() error {
-	stmt, err := Client.Prepare("INSERT INTO user(id, name, tgusername) VALUES($1, $2, $3);")
+func (user *User) Save() error {
+	stmt, err := Client.Prepare("INSERT INTO user(id, name, tgusername) VALUES($1, $2, $3) RETURNING id;")
     if err != nil {
         fmt.Println("Error when trying to prepare statement")
         fmt.Println(err)
@@ -13,10 +13,12 @@ func (user User) Save() error {
     }
     defer stmt.Close()
 
-    insertErr := stmt.QueryRow(user.ID, user.Name, user.TGusername)
+	fmt.Println(user)
+
+    insertErr := stmt.QueryRow(user.ID, user.Name, user.TGusername).Scan(&user.ID)
     if insertErr != nil {
         fmt.Println("Error when trying to save user")
-		fmt.Println(insertErr)
+		fmt.Println(fmt.Errorf("%v", insertErr))
         return err
     }
     fmt.Println("User added")
@@ -24,7 +26,7 @@ func (user User) Save() error {
     return nil
 }
 
-func (user User) GetById() error {
+func (user *User) GetById() error {
 	stmt, err := Client.Prepare("SELECT id, name, tgusername FROM user WHERE id=$1;")
     if err != nil {
         fmt.Println("Error when trying to prepare statement")
@@ -43,7 +45,7 @@ func (user User) GetById() error {
     return nil
 }
 
-func (friend Friend) Save() error {
+func (friend *Friend) Save() error {
 	stmt, err := Client.Prepare("INSERT INTO user(id, name, brithday, userid) VALUES($1, $2, $3);")
     if err != nil {
         fmt.Println("Error when trying to prepare statement")
@@ -62,7 +64,7 @@ func (friend Friend) Save() error {
     return nil
 }
 
-func (link Link) Save() error {
+func (link *Link) Save() error {
 	stmt, err := Client.Prepare("INSERT INTO link(url, friendid) VALUES($1, $2);")
 	if err != nil {
         fmt.Println("Error when trying to prepare statement")
