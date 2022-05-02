@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	token := app.GetConfig().BOTTOKEN
+	token := app.getConfig().BOTTOKEN
 	bot := telegram.NewBot(token)
 	bot.AddEventHandler("/start", commands.StartCommand{})
 	bot.AddEventHandler("/add", commands.AddPersonCommand{})
