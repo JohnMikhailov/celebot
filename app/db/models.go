@@ -1,18 +1,29 @@
 package db
 
-type userId int64
+type UserId int64
+
 
 type User struct {
-	ID userId `json:"id"`
-	Name string `json:"name"`
-	BirthDate string `json:"birthDate"`  // sqlite3 not support Date type
+	// telegram user -> bot's user
 
-	UserLinks []UserLink
+	ID int `json:"id"`  // id will be taken from telegram
+	Name string `json:"name"`
+	TGusername string `json:"tgusername"`
+
+	Friends []Friend
 }
 
-type UserLink struct {
-	ID int64 `json:"id"`
+type Friend struct {
+	ID string `json:"id"`  // uuid
 	Name string `json:"name"`
-	Link string `json:"link"`  // example: https://social.media.domain
-	UserId userId `json:"userId"`
+	UserId int `json:"userid"`
+	BirthDay string `json:"birthday"`
+
+	Links []Link
+}
+
+type Link struct {
+	ID int `json:"id"`
+	URL string `json:"url"`
+	FriendId string `json:"friendid"`
 }

@@ -11,10 +11,18 @@ import (
 type StartCommand struct {}
 type AddPersonCommand struct {}
 type RandomCongratulationCommand struct {}
-type AddUserCommand struct {}
+type ShowMeCommand struct {}
 
 
 func (handler StartCommand) Handle(c telegram.Context) {
+	user := db.User {
+		ID: c.Message.From.Id,
+		Name: c.Message.From.FirstName,
+		TGusername: c.Message.From.Username,
+	}
+
+	user.Save()
+
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
 		"Hello, i'm celebot! Tell me about your friends birthdays and i will remind you about it ;)",
@@ -40,19 +48,13 @@ func (handler RandomCongratulationCommand) Handle(c telegram.Context) {
 	)
 }
 
-func (handler AddUserCommand) Handle(c telegram.Context) {
-	params := getCommandParams(c.Message.Text)
-	user := db.User {
-		Name: params["name"],
-		BirthDate: params["bd"],
-		UserLinks: []db.UserLink{},
-	}
+func (handler ShowMeCommand) Handle(c telegram.Context) {
+	user := db.User{ID: c.Message.From.Id}
+	user.GetById()
 
-	user.Save([]db.UserLink{})
-	text := fmt.Sprintf("Added new person: %s birth date: %s", user.Name, user.BirthDate)
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
-		text,
+		"me:" + user.TGusername,
 	)
 }
 
