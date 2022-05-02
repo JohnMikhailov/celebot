@@ -10,9 +10,10 @@ import (
 )
 
 func main() {
-	token := app.getConfig().BOTTOKEN
+	token := app.GetConfig().BOTTOKEN
 	bot := telegram.NewBot(token)
 	bot.AddEventHandler("/start", commands.StartCommand{})
-	bot.AddEventHandler("/add", commands.AddPersonCommand{})
+	bot.AddEventHandler("congrats", commands.RandomCongratulationCommand{})
+	bot.AddEventHandler("add", commands.AddUserCommand{})
 	bot.StartPolling()
 }
