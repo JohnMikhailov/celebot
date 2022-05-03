@@ -12,6 +12,8 @@ type StartCommand struct {}
 type AddPersonCommand struct {}
 type RandomCongratulationCommand struct {}
 type ShowMeCommand struct {}
+type AddFriendCommand struct {}
+type GetAllFriendsCommand struct {}
 
 
 func (handler StartCommand) Handle(c telegram.Context) {
@@ -50,7 +52,8 @@ func (handler RandomCongratulationCommand) Handle(c telegram.Context) {
 
 func (handler ShowMeCommand) Handle(c telegram.Context) {
 	user := db.User{ID: c.Message.From.Id}
-	user.GetById()
+	fetchFriends := false
+	user.GetById(fetchFriends)
 
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
@@ -58,6 +61,33 @@ func (handler ShowMeCommand) Handle(c telegram.Context) {
 	)
 }
 
+func (handler AddFriendCommand) Handle(c telegram.Context) {
+	params := getCommandParams(c.Message.Text)
+
+	friend := db.Friend{
+		Name: params["name"],
+		UserId: c.Message.From.Id,
+		BirthDay: params["bd"],
+		ChatId: c.Message.Chat.Id,
+	}
+
+	friend.Save()
+
+	c.SendMessage(
+		c.Message.GetChatIdStr(),
+		"new Birth Day added for friend: " + friend.Name,
+	)
+}
+
+func (handler GetAllFriendsCommand) Handle(c telegram.Context) {
+	user := db.User{ID: c.Message.From.Id}
+	user.GetById(true)
+
+	c.SendMessage(
+		c.Message.GetChatIdStr(),
+		user.FriendsListAsString(),
+	)
+}
 
 func getCommandParams(text string) map[string]string {
 	// command syntax: command param1=value1 param2=value2

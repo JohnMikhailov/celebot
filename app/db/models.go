@@ -1,7 +1,5 @@
 package db
 
-type UserId int64
-
 
 type User struct {
 	// telegram user -> bot's user
@@ -13,11 +11,20 @@ type User struct {
 	Friends []Friend
 }
 
+func (user User) FriendsListAsString() string {
+	result := ""
+	for _, friend := range user.Friends {
+		result += friend.Name + " " + friend.BirthDay + "\n"
+	}
+	return result
+}
+
 type Friend struct {
-	ID string `json:"id"`  // uuid
+	ID int `json:"id"`  // uuid
 	Name string `json:"name"`
 	UserId int `json:"userid"`
 	BirthDay string `json:"birthday"`
+	ChatId int `json:"chatid"`
 
 	Links []Link
 }
@@ -26,4 +33,9 @@ type Link struct {
 	ID int `json:"id"`
 	URL string `json:"url"`
 	FriendId string `json:"friendid"`
+}
+
+type Congratulations struct {
+	ID int `json:"id"`
+	Text string `json:"text"`
 }

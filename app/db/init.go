@@ -26,9 +26,10 @@ func create_tables(client *sql.DB) error {
 	);`
 
 	create_friend_table_sql := `CREATE TABLE IF NOT EXISTS friend (
-		id VARCHAR,
+		id INTEGER PRIMARY KEY,
 		name VARCHAR,
 		birthday VARCHAR,
+		chatid INTEGER,
 		userid INTEGER
 	);`
 
@@ -37,7 +38,17 @@ func create_tables(client *sql.DB) error {
 		friendid VARCHAR
 	);`
 
-	for _, table := range []string{create_user_table_sql, create_friend_table_sql, create_user_link_table_sql} {
+	create_congratulation_table_sql := `CREATE TABLE IF NOT EXISTS congratulations (
+		id INTEGER PRIMARY KEY,
+		text VARCHAR
+	);`
+
+	for _, table := range []string{
+		create_user_table_sql,
+		create_friend_table_sql,
+		create_user_link_table_sql,
+		create_congratulation_table_sql,
+	} {
 		err := create_table(client, table)
 		if err != nil {
 			return err

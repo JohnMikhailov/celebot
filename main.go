@@ -15,5 +15,7 @@ func main() {
 	bot.AddEventHandler("/start", commands.StartCommand{})
 	bot.AddEventHandler("congrats", commands.RandomCongratulationCommand{})
 	bot.AddEventHandler("me", commands.ShowMeCommand{})
+	bot.AddEventHandler("add", commands.AddFriendCommand{})
+	bot.AddEventHandler("friends", commands.GetAllFriendsCommand{})
 	bot.StartPolling()
 }
