@@ -22,7 +22,8 @@ func create_tables(client *sql.DB) error {
 	create_user_table_sql := `CREATE TABLE IF NOT EXISTS user (
 		id INTEGER PRIMARY KEY,
 		name VARCHAR,
-		tgusername VARCHAR
+		tgusername VARCHAR,
+		chatid VARCHAR
 	);`
 
 	create_friend_table_sql := `CREATE TABLE IF NOT EXISTS friend (

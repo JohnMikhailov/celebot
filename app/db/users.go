@@ -5,14 +5,14 @@ import "fmt"
 
 
 func (user *User) Save() error {
-	stmt, err := Client.Prepare("INSERT INTO user(id, name, tgusername) VALUES($1, $2, $3) RETURNING id;")
+	stmt, err := Client.Prepare("INSERT INTO user(id, name, tgusername, chatid) VALUES($1, $2, $3, $4) RETURNING id;")
     if err != nil {
         fmt.Println("Error when trying to prepare statement for saving user")
         return err
     }
     defer stmt.Close()
 
-    insertErr := stmt.QueryRow(user.ID, user.Name, user.TGusername).Scan(&user.ID)
+    insertErr := stmt.QueryRow(user.ID, user.Name, user.TGusername, user.ChatId).Scan(&user.ID)
     if insertErr != nil {
         fmt.Println("Error when trying to save user")
         return err
@@ -69,7 +69,6 @@ func (friend *Friend) Save() error {
 	stmt, err := Client.Prepare("INSERT INTO friend(name, birthday, userid, chatid) VALUES($1, $2, $3, $4) RETURNING id;")
     if err != nil {
         fmt.Println("Error when trying to prepare statement")
-        fmt.Println(err)
         return err
     }
     defer stmt.Close()
@@ -88,7 +87,6 @@ func (link *Link) Save() error {
 	stmt, err := Client.Prepare("INSERT INTO link(url, friendid) VALUES($1, $2);")
 	if err != nil {
         fmt.Println("Error when trying to prepare statement")
-        fmt.Println(err)
         return err
     }
     defer stmt.Close()

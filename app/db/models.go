@@ -7,6 +7,7 @@ type User struct {
 	ID int `json:"id"`  // id will be taken from telegram
 	Name string `json:"name"`
 	TGusername string `json:"tgusername"`
+	ChatId int `json:"chatid"`
 
 	Friends []Friend
 }

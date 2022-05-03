@@ -21,6 +21,7 @@ func (handler StartCommand) Handle(c telegram.Context) {
 		ID: c.Message.From.Id,
 		Name: c.Message.From.FirstName,
 		TGusername: c.Message.From.Username,
+		ChatId: c.Message.Chat.Id,
 	}
 
 	user.Save()
