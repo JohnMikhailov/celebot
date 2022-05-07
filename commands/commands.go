@@ -16,7 +16,7 @@ type AddFriendCommand struct {}
 type GetAllFriendsCommand struct {}
 
 
-func (handler StartCommand) Handle(c telegram.Context) {
+func (handler *StartCommand) Handle(c *telegram.Context) {
 	user := db.User {
 		ID: c.Message.From.Id,
 		Name: c.Message.From.FirstName,
@@ -32,7 +32,7 @@ func (handler StartCommand) Handle(c telegram.Context) {
 	)
 }
 
-func (handler AddPersonCommand) Handle(c telegram.Context) {
+func (handler *AddPersonCommand) Handle(c *telegram.Context) {
 	params := getCommandParams(c.Message.Text)
 	name := params["name"]
 	bd := params["bd"]
@@ -44,14 +44,14 @@ func (handler AddPersonCommand) Handle(c telegram.Context) {
 	)
 }
 
-func (handler RandomCongratulationCommand) Handle(c telegram.Context) {
+func (handler *RandomCongratulationCommand) Handle(c *telegram.Context) {
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
 		"i don't know any congratulations yet, may be you would like add one?:)",
 	)
 }
 
-func (handler ShowMeCommand) Handle(c telegram.Context) {
+func (handler *ShowMeCommand) Handle(c *telegram.Context) {
 	user := db.User{ID: c.Message.From.Id}
 	fetchFriends := false
 	user.GetById(fetchFriends)
@@ -62,7 +62,7 @@ func (handler ShowMeCommand) Handle(c telegram.Context) {
 	)
 }
 
-func (handler AddFriendCommand) Handle(c telegram.Context) {
+func (handler *AddFriendCommand) Handle(c *telegram.Context) {
 	params := getCommandParams(c.Message.Text)
 
 	friend := db.Friend{
@@ -80,7 +80,7 @@ func (handler AddFriendCommand) Handle(c telegram.Context) {
 	)
 }
 
-func (handler GetAllFriendsCommand) Handle(c telegram.Context) {
+func (handler *GetAllFriendsCommand) Handle(c *telegram.Context) {
 	user := db.User{ID: c.Message.From.Id}
 	user.GetById(true)
 

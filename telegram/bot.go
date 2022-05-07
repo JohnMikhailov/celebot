@@ -6,7 +6,7 @@ import "fmt"
 type telegramBot struct {
 	TOKEN string
 	client apiClient
-	handlersRegistry handlersRegistry
+	handlersRegistry *handlersRegistry
 }
 
 func NewBot(token string) telegramBot {
@@ -42,7 +42,7 @@ func (bot telegramBot) processMessage(message message) {
 
 	handler := bot.handlersRegistry.getTextHandlerByCommand(command)
 	context := Context{bot: bot, Message: message}
-	handler.Handle(context)
+	handler.Handle(&context)
 }
 
 func (bot telegramBot) AddEventHandler(textCommand string, handler MessageHandler) {

@@ -12,7 +12,7 @@ type User struct {
 	Friends []Friend
 }
 
-func (user User) FriendsListAsString() string {
+func (user *User) FriendsListAsString() string {
 	result := ""
 	for _, friend := range user.Friends {
 		result += friend.Name + " " + friend.BirthDay + "\n"
