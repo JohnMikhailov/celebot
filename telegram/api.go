@@ -16,11 +16,12 @@ type apiClient struct {
 	token string
 }
 
-func newApiClient(token string) apiClient {
+func NewApiClient(token string) apiClient {
 	return apiClient{token: token, urlHead: "https://api.telegram.org/bot"}
 }
 
-func (client apiClient) sendMessage(chatId, text string) *message {
+func (client apiClient) SendMessage(chatId, text string) *message {
+	// add url query schema https://core.telegram.org/bots/api#sendmessage
 	res := message {}
 	errorRes := errorResponse{}
 	url := client.urlHead + client.token + "/sendMessage"
@@ -57,11 +58,11 @@ func (client apiClient) sendMessage(chatId, text string) *message {
 }
 
 func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
+	// add url query schema https://core.telegram.org/bots/api#getupdates
 	url := client.urlHead +
 	client.token + "/" +
 			"getUpdates" +
 			"?timeout=10" +
-			"&limit=1" +
 			"&offset=" + strconv.Itoa(updatesOffset)
 
 	res := updateResponse{}

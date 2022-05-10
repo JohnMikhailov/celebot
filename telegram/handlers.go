@@ -5,8 +5,8 @@ type handlersRegistry struct {
 	handlers map[string]MessageHandler
 }
 
-func newHandlersRegistry() *handlersRegistry {
-	return &handlersRegistry{handlers: map[string]MessageHandler{}}
+func newHandlersRegistry() handlersRegistry {
+	return handlersRegistry{handlers: map[string]MessageHandler{}}
 }
 
 func (registry *handlersRegistry) addEventHandler(textCommand string, handler MessageHandler) {

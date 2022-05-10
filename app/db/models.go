@@ -1,6 +1,9 @@
 package db
 
 
+import "strconv"
+
+
 type User struct {
 	// telegram user -> bot's user
 
@@ -26,8 +29,13 @@ type Friend struct {
 	UserId int `json:"userid"`
 	BirthDay string `json:"birthday"`
 	ChatId int `json:"chatid"`
+	Notified int `json:"notified"`
 
 	Links []Link
+}
+
+func (friend Friend) GetChatIdStr() string {
+	return strconv.Itoa(friend.ChatId)
 }
 
 type Link struct {

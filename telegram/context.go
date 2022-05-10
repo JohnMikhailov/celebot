@@ -11,5 +11,5 @@ type Context struct {
 }
 
 func (c *Context) SendMessage(text, chatId string) *message {
-	return c.bot.client.sendMessage(text, chatId)
+	return c.bot.client.SendMessage(text, chatId)
 }

@@ -65,6 +65,34 @@ func (user *User) GetById(fetchFriends bool) error {
     return nil
 }
 
+func (user *User) GetFriendsByBirthDate(birthDay string) error {
+    stmt, err := Client.Prepare(
+        "SELECT id, name, birthday, userid, chatid FROM friend WHERE birthday like $1;",
+    )
+    if err != nil {
+        fmt.Println("Error when trying to prepare statement for fetching friends for user")
+        return err
+    }
+
+    results, err := stmt.Query(birthDay + ".%")
+    if err != nil {
+        fmt.Println("Error when fetching friends for user by birthday")
+        return err
+    }
+
+    for results.Next() {
+        friend := Friend{}
+        err := results.Scan(&friend.ID, &friend.Name, &friend.BirthDay, &friend.UserId, &friend.ChatId)
+        if err != nil {
+            fmt.Println("Error when fetching friends for user by birthday")
+            continue
+        }
+        user.Friends = append(user.Friends, friend)
+    }
+
+    return nil
+}
+
 func (friend *Friend) Save() error {
 	stmt, err := Client.Prepare("INSERT INTO friend(name, birthday, userid, chatid) VALUES($1, $2, $3, $4) RETURNING id;")
     if err != nil {

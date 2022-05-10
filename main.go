@@ -8,6 +8,7 @@ import (
 
 func main() {
 	token := app.GetConfig().BOTTOKEN
+	go commands.CheckBirthDays()
 	bot := telegram.NewBot(token)
 	bot.AddEventHandler("/start", &commands.StartCommand{})
 	bot.AddEventHandler("congrats", &commands.RandomCongratulationCommand{})
