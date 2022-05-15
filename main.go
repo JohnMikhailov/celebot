@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/meehighlov/celebot/telegram"
-	"github.com/meehighlov/celebot/commands"
 	"github.com/meehighlov/celebot/app"
+	"github.com/meehighlov/celebot/commands"
+	"github.com/meehighlov/celebot/telegram"
 )
 
 func main() {
 	token := app.GetConfig().BOTTOKEN
-	go commands.CheckBirthDays()
+	commands.RunChecks()
 	bot := telegram.NewBot(token)
 	bot.AddEventHandler("/start", &commands.StartCommand{})
 	bot.AddEventHandler("congrats", &commands.RandomCongratulationCommand{})
