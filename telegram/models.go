@@ -46,6 +46,10 @@ type updateResponse struct {
 	Result []update `json:"result"`
 }
 
+func (update *updateResponse) GetLastUpdateId() int {
+	return update.Result[len(update.Result) - 1].UpdateId
+}
+
 type responseParameters struct {
 	MigrateToChatId int `json:"migrate_to_chat_id"`
 	RetryAfter int `json:"retry_after"`
