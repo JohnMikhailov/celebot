@@ -22,6 +22,7 @@ func NewApiClient(token string) apiClient {
 
 func (client apiClient) SendMessage(chatId, text string) *message {
 	// add url query schema https://core.telegram.org/bots/api#sendmessage
+	// TODO use url module
 	res := message {}
 	errorRes := errorResponse{}
 	url := client.urlHead + client.token + "/sendMessage"
@@ -59,6 +60,7 @@ func (client apiClient) SendMessage(chatId, text string) *message {
 
 func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
 	// add url query schema https://core.telegram.org/bots/api#getupdates
+	// TODO use url module
 	url := client.urlHead +
 	client.token + "/" +
 			"getUpdates" +
