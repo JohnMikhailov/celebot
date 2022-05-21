@@ -28,7 +28,7 @@ func CheckBirthDays(struct{}) {
 }
 
 func RunChecks() {
-	// timeout := time.Sleep(60 * 24 * time.Minute)  // one day
+	// timeout := app.GetConfig().DEFAULT_DELAY_BETWEEN_REMINDINGS_SEC  // one day
 	tasksQueue := make(chan struct{}, 1)
 
 	go func() {
