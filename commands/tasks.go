@@ -10,6 +10,10 @@ import (
 )
 
 func CheckBirthDays(struct{}) {
+	// TODO load data partialy - potentialy there could be a lot of data about birthdays even for 1 day
+	// solution is: load (for example) 10 birthdays, send notifications, expose data about those 10 birthdays,
+	// load another part of data
+
 	fmt.Println("start task")
 	user := db.User{}
 	config := app.GetConfig()
