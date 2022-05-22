@@ -1,7 +1,7 @@
 package db
 
 import (
-	"fmt"
+	"log"
 	"database/sql"
 )
 
@@ -9,8 +9,8 @@ import (
 func create_table(client *sql.DB, create_table_sql string) error {
 	_, err := Client.Exec(create_table_sql)
 	if err != nil {
-        fmt.Println("Error when trying to prepare statement during creating tables")
-        fmt.Println(err)
+        log.Println("Error when trying to prepare statement during creating tables")
+        log.Println(err)
         return err
     }
 

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/meehighlov/celebot/app"
@@ -13,13 +14,13 @@ import (
 func getUsersToNitificate(dayWithMonth string, limit, offset int) []db.Friend {
 	user := db.User{}
 	user.GetFriendsByBirthDate(dayWithMonth, limit, offset)
-	fmt.Println("friends found:", len(user.Friends), "for day:", dayWithMonth)
+	log.Println("friends found:", len(user.Friends), "for day:", dayWithMonth)
 
 	return user.Friends
 }
 
 func CheckBirthDays(struct{}) {
-	fmt.Println("start task")
+	log.Println("start task")
 
 	config := app.GetConfig()
 	client := telegram.NewApiClient(config.BOTTOKEN)

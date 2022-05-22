@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"log"
 	"fmt"
 	"strings"
 	"github.com/meehighlov/celebot/telegram"
@@ -92,7 +93,7 @@ func (handler *GetAllFriendsCommand) Handle(c *telegram.Context) {
 
 func getCommandParams(text string) map[string]string {
 	// command syntax: command param1=value1 param2=value2
-	fmt.Println("raw message text:", text)
+	log.Println("raw message text:", text)
 	trancatedCommand := strings.Fields(text)
 
 	var preparedParams = map[string]string{}
@@ -108,7 +109,7 @@ func getCommandParams(text string) map[string]string {
 		}
 	}
 
-	fmt.Println("prepared params:", preparedParams)
+	log.Println("prepared params:", preparedParams)
 
 	return preparedParams
 }

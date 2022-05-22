@@ -2,7 +2,7 @@ package db
 
 import (
     "database/sql"
-    "fmt"
+    "log"
     _ "github.com/mattn/go-sqlite3"
 )
 
@@ -22,5 +22,5 @@ func init() {
 
     create_tables(Client)
 
-    fmt.Println("Database is ready")
+    log.Println("Database is ready")
 }

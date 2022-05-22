@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"log"
 	"net/http"
-	"fmt"
 	"strconv"
 
 	"encoding/json"
@@ -53,7 +52,7 @@ func (client apiClient) SendMessage(chatId, text string) *message {
 		json.Unmarshal([]byte(bodyString), &res)
 	} else {
 		json.Unmarshal([]byte(bodyString), &errorRes)
-		fmt.Println(errorRes.Description)
+		log.Println(errorRes.Description)
 	}
 
 	return &res
