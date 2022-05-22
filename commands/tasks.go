@@ -36,11 +36,12 @@ func CheckBirthDays(struct{}) {
 		if len(users) == 0 {
 			break
 		}
-
-		for _, user := range users {
-			text := fmt.Sprintf("birth date %s", user.Name)
-			client.SendMessage(user.GetChatIdStr(), text)
-		}
+		go func() {
+			for _, user := range users {
+				text := fmt.Sprintf("birth date %s", user.Name)
+				client.SendMessage(user.GetChatIdStr(), text)
+			}
+		}()
 
 		offset += shift
 	}
