@@ -12,7 +12,7 @@ import (
 type config struct {
 	BOTTOKEN string
 	LONGPOLLING_WORKERS int
-	DEFAULT_DELAY_BETWEEN_REMINDINGS_SEC time.Duration
+	DEFAULT_DELAY_BETWEEN_CHECKS_SEC time.Duration
 }
 
 var config_ config
@@ -28,11 +28,11 @@ func init() {
 	if err != nil {
 		log.Fatalf("Parse .env error for: LONGPOLLING_WORKERS")
 	}
-	seconds, err := strconv.Atoi(os.Getenv("DEFAULT_DELAY_BETWEEN_REMINDINGS_SEC"))
+	seconds, err := strconv.Atoi(os.Getenv("DEFAULT_DELAY_BETWEEN_CHECKS_SEC"))
 	if err != nil {
-		log.Fatalf("Parse .env error for: DEFAULT_DELAY_BETWEEN_REMINDINGS_SEC")
+		log.Fatalf("Parse .env error for: DEFAULT_DELAY_BETWEEN_CHECKS_SEC")
 	}
-	config_.DEFAULT_DELAY_BETWEEN_REMINDINGS_SEC = time.Duration(seconds) * time.Second
+	config_.DEFAULT_DELAY_BETWEEN_CHECKS_SEC = time.Duration(seconds) * time.Second
 }
 
 func GetConfig() *config {

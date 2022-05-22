@@ -65,16 +65,16 @@ func (user *User) GetById(fetchFriends bool) error {
     return nil
 }
 
-func (user *User) GetFriendsByBirthDate(birthDay string) error {
+func (user *User) GetFriendsByBirthDate(birthDay string, limit, offset int) error {
     stmt, err := Client.Prepare(
-        "SELECT id, name, birthday, userid, chatid FROM friend WHERE birthday like $1;",
+        "SELECT id, name, birthday, userid, chatid FROM friend WHERE birthday like $1 LIMIT $2 OFFSET $3;",
     )
     if err != nil {
         fmt.Println("Error when trying to prepare statement for fetching friends for user")
         return err
     }
 
-    results, err := stmt.Query(birthDay + ".%")
+    results, err := stmt.Query(birthDay + ".%", limit, offset)
     if err != nil {
         fmt.Println("Error when fetching friends for user by birthday")
         return err

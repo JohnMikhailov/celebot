@@ -29,7 +29,6 @@ type Friend struct {
 	UserId int `json:"userid"`
 	BirthDay string `json:"birthday"`
 	ChatId int `json:"chatid"`
-	Notified int `json:"notified"`
 
 	Links []Link
 }

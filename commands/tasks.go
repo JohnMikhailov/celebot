@@ -9,30 +9,44 @@ import (
 	"github.com/meehighlov/celebot/telegram"
 )
 
-func CheckBirthDays(struct{}) {
-	// TODO load data partialy - potentialy there could be a lot of data about birthdays even for 1 day
-	// solution is: load (for example) 10 birthdays, send notifications, expose data about those 10 birthdays,
-	// load another part of data
 
-	fmt.Println("start task")
+func getUsersToNitificate(dayWithMonth string, limit, offset int) []db.Friend {
 	user := db.User{}
+	user.GetFriendsByBirthDate(dayWithMonth, limit, offset)
+	fmt.Println("friends found:", len(user.Friends), "for day:", dayWithMonth)
+
+	return user.Friends
+}
+
+func CheckBirthDays(struct{}) {
+	fmt.Println("start task")
+
 	config := app.GetConfig()
 	client := telegram.NewApiClient(config.BOTTOKEN)
 	now := time.Now()
 	dbDateFormat := now.Format("02.01.2006")
 	dayWithMonth := dbDateFormat[:5]
-	user.GetFriendsByBirthDate(dayWithMonth)
 
-	fmt.Println("friends found:", len(user.Friends), "for day:", dayWithMonth)
+	limit, offset := 10, 0
+	shift := 10
 
-	for _, friend := range user.Friends {
-		text := fmt.Sprintf("birth date %s", friend.Name)
-		client.SendMessage(friend.GetChatIdStr(), text)
+	for {
+		users := getUsersToNitificate(dayWithMonth, limit, offset)
+		if len(users) == 0 {
+			break
+		}
+
+		for _, user := range users {
+			text := fmt.Sprintf("birth date %s", user.Name)
+			client.SendMessage(user.GetChatIdStr(), text)
+		}
+
+		offset += shift
 	}
 }
 
 func RunChecks() {
-	// timeout := app.GetConfig().DEFAULT_DELAY_BETWEEN_REMINDINGS_SEC  // one day
+	timeout := app.GetConfig().DEFAULT_DELAY_BETWEEN_CHECKS_SEC
 	tasksQueue := make(chan struct{}, 1)
 
 	go func() {
@@ -42,9 +56,8 @@ func RunChecks() {
 	}()
 	go func() {
 		for {
-			time.Sleep(10 * time.Second)
+			time.Sleep(timeout)
 			tasksQueue <-struct{}{}
 		}
 	}()
-	// close(tasksQueue)
 }
