@@ -69,6 +69,7 @@ func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
 			"&offset=" + strconv.Itoa(updatesOffset)
 
 	res := updateResponse{}
+	errorRes := errorResponse{}
 
 	resp, err := http.Get(url)
 
@@ -77,13 +78,17 @@ func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyString := string(bodyBytes)
+
 	if resp.StatusCode == http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
-		bodyString := string(bodyBytes)
 		json.Unmarshal([]byte(bodyString), &res)
+	} else {
+		json.Unmarshal([]byte(bodyString), &errorRes)
+		log.Println(errorRes.Description)
 	}
 
 	return &res

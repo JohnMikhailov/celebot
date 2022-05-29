@@ -33,7 +33,7 @@ func (bot telegramBot) StartPolling() {
 		for {
 			updates := bot.client.getUpdates(updatesOffset)
 			if !updates.Ok {
-				log.Println("getting updates failed")  // TODO log it
+				log.Println("getting updates failed")
 			}
 			if len(updates.Result) > 0 {
 				updatesOffset = updates.GetLastUpdateId() + 1
