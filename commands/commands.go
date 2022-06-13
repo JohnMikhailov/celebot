@@ -6,6 +6,7 @@ import (
 	"strings"
 	"github.com/meehighlov/celebot/telegram"
 	"github.com/meehighlov/celebot/app/db"
+	"github.com/meehighlov/celebot/app"
 )
 
 
@@ -18,6 +19,10 @@ type GetAllFriendsCommand struct {}
 
 
 func (handler *StartCommand) Handle(c *telegram.Context) {
+	if !app.IsAllowedUser(c.Message.From.Username) {
+		return
+	}
+
 	user := db.User {
 		ID: c.Message.From.Id,
 		Name: c.Message.From.FirstName,
@@ -34,6 +39,9 @@ func (handler *StartCommand) Handle(c *telegram.Context) {
 }
 
 func (handler *AddPersonCommand) Handle(c *telegram.Context) {
+	if !app.IsAllowedUser(c.Message.From.Username) {
+		return
+	}
 	params := getCommandParams(c.Message.Text)
 	name := params["name"]
 	bd := params["bd"]
@@ -46,6 +54,9 @@ func (handler *AddPersonCommand) Handle(c *telegram.Context) {
 }
 
 func (handler *RandomCongratulationCommand) Handle(c *telegram.Context) {
+	if !app.IsAllowedUser(c.Message.From.Username) {
+		return
+	}
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
 		"i don't know any congratulations yet, may be you would like add one?:)",
@@ -53,6 +64,9 @@ func (handler *RandomCongratulationCommand) Handle(c *telegram.Context) {
 }
 
 func (handler *ShowMeCommand) Handle(c *telegram.Context) {
+	if !app.IsAllowedUser(c.Message.From.Username) {
+		return
+	}
 	user := db.User{ID: c.Message.From.Id}
 	fetchFriends := false
 	user.GetById(fetchFriends)
@@ -64,6 +78,9 @@ func (handler *ShowMeCommand) Handle(c *telegram.Context) {
 }
 
 func (handler *AddFriendCommand) Handle(c *telegram.Context) {
+	if !app.IsAllowedUser(c.Message.From.Username) {
+		return
+	}
 	params := getCommandParams(c.Message.Text)
 
 	friend := db.Friend{
@@ -82,6 +99,9 @@ func (handler *AddFriendCommand) Handle(c *telegram.Context) {
 }
 
 func (handler *GetAllFriendsCommand) Handle(c *telegram.Context) {
+	if !app.IsAllowedUser(c.Message.From.Username) {
+		return
+	}
 	user := db.User{ID: c.Message.From.Id}
 	user.GetById(true)
 

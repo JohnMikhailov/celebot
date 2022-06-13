@@ -23,7 +23,7 @@ func CheckBirthDays(struct{}) {
 	log.Println("start task")
 
 	config := app.GetConfig()
-	client := telegram.NewApiClient(config.BOTTOKEN)
+	client := telegram.NewApiClient(config.BOTTOKEN_CELEBOT)
 	now := time.Now()
 	dbDateFormat := now.Format("02.01.2006")
 	dayWithMonth := dbDateFormat[:5]
