@@ -34,7 +34,6 @@ func (user *User) GetById(fetchFriends bool) error {
     defer stmt.Close()
 
     result := stmt.QueryRow(user.ID)
-	log.Println(result)
 
 	if err := result.Scan(&user.ID, &user.Name, &user.TGusername); err != nil {
         log.Println("Error when trying to get User by ID")

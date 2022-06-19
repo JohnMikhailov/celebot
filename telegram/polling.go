@@ -58,7 +58,6 @@ func (bot telegramBot) StartPolling() {
 	pollingMaster.shutdown()
 }
 
-
 func (bot telegramBot) handleCommandFromMessage(message message) {
 	command := message.getCommand()
 	if !bot.handlersRegistry.handlerExists(command) {
@@ -71,7 +70,7 @@ func (bot telegramBot) handleCommandFromMessage(message message) {
 	handler.Handle(&context)
 }
 
-func (bot telegramBot) processUpdateFromPrivateChat(update update) {
+func (bot telegramBot) processUpdateFromPrivateChat(update update) { 
 	message := update.Message
 	bot.handleCommandFromMessage(message)
 }

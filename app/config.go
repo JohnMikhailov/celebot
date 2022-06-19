@@ -11,10 +11,11 @@ import (
 type empty int
 
 type config struct {
-	BOTTOKEN_CELEBOT string
-	LONGPOLLING_WORKERS int
+	BOTTOKEN_CELEBOT                 string
+	LONGPOLLING_WORKERS              int
 	DEFAULT_DELAY_BETWEEN_CHECKS_SEC time.Duration
-	ALLOWED_USERS map[string]empty
+	ALLOWED_USERS                    map[string]empty
+	BD_NOTIFICATION_HOUR_MOSCOW_TZ   int
 }
 
 var config_ config
@@ -36,6 +37,10 @@ func init() {
 	allowedUsersList := strings.Split(allowedUsers, ",")
 	for _, allowedUser := range allowedUsersList {
 		config_.ALLOWED_USERS[allowedUser] = 1
+	}
+	config_.BD_NOTIFICATION_HOUR_MOSCOW_TZ, err = strconv.Atoi(os.Getenv("BD_NOTIFICATION_HOUR_MOSCOW_TZ"))
+	if err != nil {
+		log.Fatalf("Parse var error for: BD_NOTIFICATION_HOUR_MOSCOW_TZ")
 	}
 }
 

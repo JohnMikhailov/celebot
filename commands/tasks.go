@@ -10,7 +10,6 @@ import (
 	"github.com/meehighlov/celebot/telegram"
 )
 
-
 func getUsersToNitificate(dayWithMonth string, limit, offset int) []db.Friend {
 	user := db.User{}
 	user.GetFriendsByBirthDate(dayWithMonth, limit, offset)
@@ -20,7 +19,7 @@ func getUsersToNitificate(dayWithMonth string, limit, offset int) []db.Friend {
 }
 
 func CheckBirthDays(struct{}) {
-	log.Println("start task")
+	log.Println("searching for birthdays")
 
 	config := app.GetConfig()
 	client := telegram.NewApiClient(config.BOTTOKEN_CELEBOT)
@@ -38,7 +37,7 @@ func CheckBirthDays(struct{}) {
 		}
 
 		for _, user := range users {
-			text := fmt.Sprintf("birth date %s", user.Name)
+			text := fmt.Sprintf("Today is a birthday of %s!", user.Name)
 			client.SendMessage(user.GetChatIdStr(), text)
 		}
 
@@ -49,6 +48,8 @@ func CheckBirthDays(struct{}) {
 func RunChecks() {
 	timeout := app.GetConfig().DEFAULT_DELAY_BETWEEN_CHECKS_SEC
 	tasksQueue := make(chan struct{}, 1)
+	hour_to_notify := app.GetConfig().BD_NOTIFICATION_HOUR_MOSCOW_TZ
+	location, _ := time.LoadLocation("Europe/Moscow")
 
 	go func() {
 		for v := range tasksQueue {
@@ -57,8 +58,13 @@ func RunChecks() {
 	}()
 	go func() {
 		for {
+			now := time.Now().In(location).Hour()
+			if now == hour_to_notify {
+				tasksQueue <- struct{}{}
+				hour := 60 * 60
+				time.Sleep(time.Duration(hour) * time.Second)
+			}
 			time.Sleep(timeout)
-			tasksQueue <-struct{}{}
 		}
 	}()
 }
