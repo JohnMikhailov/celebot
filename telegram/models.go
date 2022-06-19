@@ -41,6 +41,14 @@ type update struct {
 	Message message `json:"message"`
 }
 
+func (update *update) isFromGroup() bool {
+	return update.Message.Chat.Type == "group" // todo use enum!
+}
+
+func (update *update) isFromPrivateChat() bool {
+	return update.Message.Chat.Type == "private" // todo use enum!
+}
+
 type updateResponse struct {
 	Ok bool `json:"ok"`
 	Result []update `json:"result"`
@@ -66,5 +74,9 @@ func (message message) GetChatIdStr() string {
 }
 
 func (message message) getCommand() string {
-	return strings.Fields(message.Text)[0]
+	parts := strings.Fields(message.Text)
+	if len(parts) > 0 {
+		return parts[0]
+	}
+	return ""
 }

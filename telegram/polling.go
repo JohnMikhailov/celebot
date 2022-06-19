@@ -49,7 +49,7 @@ func (bot telegramBot) StartPolling() {
 	for i := 0; i < pollingMaster.workers; i++ {
 		go func() {
 			update := <- pollingMaster.updatesQueue
-			bot.processMessage(update.Message)
+			bot.processUpdate(update)
 			pollingMaster.wg.Done()
 		}()
 	}
@@ -58,16 +58,38 @@ func (bot telegramBot) StartPolling() {
 	pollingMaster.shutdown()
 }
 
-func (bot telegramBot) processMessage(message message) {
+
+func (bot telegramBot) handleCommandFromMessage(message message) {
 	command := message.getCommand()
 	if !bot.handlersRegistry.handlerExists(command) {
-		log.Println("Command handler not registered! Skiping message")
+		log.Println("Command handler not registered! Skiping, original text was: " + message.Text)
 		return
 	}
 
 	handler := bot.handlersRegistry.getTextHandlerByCommand(command)
 	context := Context{bot: bot, Message: message}
 	handler.Handle(&context)
+}
+
+func (bot telegramBot) processUpdateFromPrivateChat(update update) {
+	message := update.Message
+	bot.handleCommandFromMessage(message)
+}
+
+func (bot telegramBot) processUpdateFromGroup(update update) {
+	message := update.Message
+	bot.handleCommandFromMessage(message)
+}
+
+func (bot telegramBot) processUpdate(update update) {
+	if update.isFromGroup() {
+		bot.processUpdateFromGroup(update)
+		return
+	}
+	if update.isFromPrivateChat() {
+		bot.processUpdateFromPrivateChat(update)
+		return
+	}
 }
 
 func listenForExit() <-chan struct{} {
