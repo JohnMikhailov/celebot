@@ -38,7 +38,7 @@ func CheckBirthDays(struct{}) {
 
 		for _, user := range users {
 			text := fmt.Sprintf("Today is a birthday of %s!", user.Name)
-			client.SendMessage(user.GetChatIdStr(), text)
+			client.SendMessage(user.GetChatIdStr(), text, false)
 		}
 
 		offset += shift

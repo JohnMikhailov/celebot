@@ -2,7 +2,6 @@ package commands
 
 import (
 	"log"
-	"fmt"
 	"strings"
 	"github.com/meehighlov/celebot/telegram"
 	"github.com/meehighlov/celebot/app/db"
@@ -11,12 +10,48 @@ import (
 
 
 type StartCommand struct {}
-type AddPersonCommand struct {}
-type RandomCongratulationCommand struct {}
 type ShowMeCommand struct {}
 type AddFriendCommand struct {}
 type GetAllFriendsCommand struct {}
+type AddMyBirthdayCommand struct {}
+type AddMyBirthdayReplyCommand struct {}
 
+
+func (handler *AddMyBirthdayReplyCommand) Handle(c *telegram.Context) {
+	if !app.IsAllowedUser(c.Message.From.Username) {
+		return
+	}
+	user := db.User{ID: c.Message.From.Id}
+	user.GetById(false)
+	user.Birthday = c.Message.Text
+	c.SendMessage("Your birtday is saved!", c.Message.GetChatIdStr(), false)
+}
+
+func getButtonsRow(texts []string) []telegram.KeyboardButton {
+	buttons := make([]telegram.KeyboardButton, 3)
+	for _, month := range texts {
+		button := telegram.KeyboardButton{Text: month}
+		buttons = append(buttons, button)
+	}
+	return buttons
+}
+
+func getKeyboardWithMonths() [][]telegram.KeyboardButton{
+	// вынести создание клавиатуры в либу
+	return [][]telegram.KeyboardButton{
+		getButtonsRow([]string{"jan", "feb", "mar", "apr"}),
+		getButtonsRow([]string{"may", "jun", "jul", "aug",}),
+		getButtonsRow([]string{"sep", "oct", "nov", "dec"}),
+	}
+}
+
+func (handler *AddMyBirthdayCommand) Handle(c *telegram.Context) {
+	if !app.IsAllowedUser(c.Message.From.Username) {
+		return
+	}
+	keyboard := telegram.ReplyKeyboardMarkup{Keyboard: getKeyboardWithMonths(), Selective: false, OneTimeKeyboard: true}
+	c.SendMessageWithKeyboard(c.Message.GetChatIdStr(), "ok! tell me the month", keyboard)
+}
 
 func (handler *StartCommand) Handle(c *telegram.Context) {
 	if !app.IsAllowedUser(c.Message.From.Username) {
@@ -35,31 +70,7 @@ func (handler *StartCommand) Handle(c *telegram.Context) {
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
 		"Hello, i'm celebot! Tell me about your friends birthdays and i will remind you about it ;)",
-	)
-}
-
-func (handler *AddPersonCommand) Handle(c *telegram.Context) {
-	if !app.IsAllowedUser(c.Message.From.Username) {
-		return
-	}
-	params := getCommandParams(c.Message.Text)
-	name := params["name"]
-	bd := params["bd"]
-
-	text := fmt.Sprintf("Added new person: %s birth date: %s", name, bd)
-	c.SendMessage(
-		c.Message.GetChatIdStr(),
-		text,
-	)
-}
-
-func (handler *RandomCongratulationCommand) Handle(c *telegram.Context) {
-	if !app.IsAllowedUser(c.Message.From.Username) {
-		return
-	}
-	c.SendMessage(
-		c.Message.GetChatIdStr(),
-		"i don't know any congratulations yet, may be you would like add one?:)",
+		false,
 	)
 }
 
@@ -74,6 +85,7 @@ func (handler *ShowMeCommand) Handle(c *telegram.Context) {
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
 		"your username is: " + user.TGusername,
+		false,
 	)
 }
 
@@ -81,20 +93,21 @@ func (handler *AddFriendCommand) Handle(c *telegram.Context) {
 	if !app.IsAllowedUser(c.Message.From.Username) {
 		return
 	}
-	params := getCommandParams(c.Message.Text)
+	// params := getCommandParams(c.Message.Text)
 
-	friend := db.Friend{
-		Name: params["name"],
-		UserId: c.Message.From.Id,
-		BirthDay: params["bd"],
-		ChatId: c.Message.Chat.Id,
-	}
+	// friend := db.Friend{
+	// 	Name: params["name"],
+	// 	UserId: c.Message.From.Id,
+	// 	BirthDay: params["bd"],
+	// 	ChatId: c.Message.Chat.Id,
+	// }
 
-	friend.Save()
+	// friend.Save()
 
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
-		"new Birth Day added for friend: " + friend.Name,
+		"send your birth day in format: dd.mm",
+		true,
 	)
 }
 
@@ -108,6 +121,7 @@ func (handler *GetAllFriendsCommand) Handle(c *telegram.Context) {
 	c.SendMessage(
 		c.Message.GetChatIdStr(),
 		user.FriendsListAsString(),
+		false,
 	)
 }
 

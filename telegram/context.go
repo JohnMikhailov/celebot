@@ -10,6 +10,10 @@ type Context struct {
 	Message message
 }
 
-func (c *Context) SendMessage(text, chatId string) *message {
-	return c.bot.client.SendMessage(text, chatId)
+func (c *Context) SendMessage(text, chatId string, needForceReply bool) *message {
+	return c.bot.client.SendMessage(text, chatId, needForceReply)
+}
+
+func (c *Context) SendMessageWithKeyboard(text, chatId string, keyboard ReplyKeyboardMarkup) *message {
+	return c.bot.client.SendKeyboard(text, chatId, keyboard)
 }

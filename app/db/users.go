@@ -112,19 +112,3 @@ func (friend *Friend) Save() error {
 
     return nil
 }
-
-func (link *Link) Save() error {
-	stmt, err := Client.Prepare("INSERT INTO link(url, friendid) VALUES($1, $2);")
-	if err != nil {
-        log.Println("Error when trying to prepare statement")
-        return err
-    }
-    defer stmt.Close()
-	insertErr := stmt.QueryRow(link.URL, link.FriendId)
-    if insertErr != nil {
-        log.Println("Error when trying to save link")
-        return err
-    }
-    log.Println("Link added")
-    return nil
-}

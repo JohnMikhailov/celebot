@@ -11,6 +11,7 @@ type User struct {
 	Name string `json:"name"`
 	TGusername string `json:"tgusername"`
 	ChatId int `json:"chatid"`
+	Birthday string `json:"birthday"`
 
 	Friends []Friend
 }
@@ -29,18 +30,10 @@ type Friend struct {
 	UserId int `json:"userid"`
 	BirthDay string `json:"birthday"`
 	ChatId int `json:"chatid"`
-
-	Links []Link
 }
 
 func (friend Friend) GetChatIdStr() string {
 	return strconv.Itoa(friend.ChatId)
-}
-
-type Link struct {
-	ID int `json:"id"`
-	URL string `json:"url"`
-	FriendId string `json:"friendid"`
 }
 
 type Congratulations struct {

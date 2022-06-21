@@ -28,8 +28,14 @@ type user struct {
 	Username string  `json:"username"`
 }
 
+type forceReply struct {
+	ForceReply bool `json:"force_reply"`
+	InputFieldPlaceHolder string `json:"input_field_placeholder"`
+	Selective bool `json:"selective"`
+}
+
 type message struct {
-	Message_id int  `json:"message_id"`
+	MessageId int  `json:"message_id"`
 	From user  `json:"from"`
 	SenderChat chat  `json:"sender_chat"`
 	Chat chat `json:"chat"`
@@ -79,4 +85,15 @@ func (message message) getCommand() string {
 		return parts[0]
 	}
 	return ""
+}
+
+type KeyboardButton struct {
+	// full description https://core.telegram.org/bots/api#keyboardbutton
+	Text string `json:"text"`
+}
+
+type ReplyKeyboardMarkup struct {
+	Keyboard [][]KeyboardButton `json:"keyboard"`
+	OneTimeKeyboard bool `json:"one_time_keyboard"`
+	Selective bool `json:"selective"`
 }
