@@ -1,7 +1,7 @@
 package telegram
 
-
 import (
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -34,12 +34,25 @@ type forceReply struct {
 	Selective bool `json:"selective"`
 }
 
+type replyToMessage struct {
+	MessageId int  `json:"message_id"`
+	From user  `json:"from"`
+	SenderChat chat  `json:"sender_chat"`
+	Chat chat `json:"chat"`
+	Text string  `json:"text"`
+}
+
 type message struct {
 	MessageId int  `json:"message_id"`
 	From user  `json:"from"`
 	SenderChat chat  `json:"sender_chat"`
 	Chat chat `json:"chat"`
 	Text string  `json:"text"`
+	ReplyToMessage replyToMessage `json:"reply_to_message"`
+}
+
+func (m *message) IsReply() bool {
+	return reflect.ValueOf(m).Elem().FieldByName("ReplyToMessage") != reflect.Value{}
 }
 
 type update struct {
@@ -93,6 +106,17 @@ type KeyboardButton struct {
 }
 
 type ReplyKeyboardMarkup struct {
+	Keyboard [][]KeyboardButton `json:"keyboard"`
+	OneTimeKeyboard bool `json:"one_time_keyboard"`
+	Selective bool `json:"selective"`
+}
+
+type ReplyKeyboardRemove struct {
+	RemoveKeyboard bool `json:"remove_keyboard"`
+	Selective bool `json:"selective"`
+}
+
+type replyKeyboardMarkup struct {
 	Keyboard [][]KeyboardButton `json:"keyboard"`
 	OneTimeKeyboard bool `json:"one_time_keyboard"`
 	Selective bool `json:"selective"`

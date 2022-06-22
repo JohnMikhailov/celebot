@@ -10,10 +10,8 @@ func main() {
 	token := app.GetConfig().BOTTOKEN_CELEBOT
 	commands.RunChecks()
 	bot := telegram.NewBot(token)
-	bot.AddEventHandler("/start", &commands.StartCommand{})
-	bot.AddEventHandler("/me", &commands.ShowMeCommand{})
-	bot.AddEventHandler("/add", &commands.AddFriendCommand{})
-	bot.AddEventHandler("/friends", &commands.GetAllFriendsCommand{})
-	bot.AddEventHandler("/addme", &commands.AddMyBirthdayCommand{})
+	bot.AddHandler("/start", commands.StartCommand)
+	bot.AddHandler("/addme", commands.SaveBirthdayCommand)
+	bot.AddHandler("/mybirthday", commands.GetBirthDay)
 	bot.StartPolling()
 }

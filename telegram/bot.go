@@ -1,20 +1,19 @@
 package telegram
 
-
 type telegramBot struct {
-	TOKEN string
-	client apiClient
+	TOKEN            string
+	client           apiClient
 	handlersRegistry handlersRegistry
 }
 
 func NewBot(token string) telegramBot {
 	return telegramBot{
-		TOKEN: token,
+		TOKEN:            token,
 		handlersRegistry: newHandlersRegistry(),
-		client: NewApiClient(token),
+		client:           NewApiClient(token),
 	}
 }
 
-func (bot telegramBot) AddEventHandler(textCommand string, handler MessageHandler) {
-	bot.handlersRegistry.addEventHandler(textCommand, handler)
+func (bot telegramBot) AddHandler(textCommand string, handler handlerType) {
+	bot.handlersRegistry.addHandler(textCommand, handler)
 }

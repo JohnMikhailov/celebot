@@ -65,12 +65,12 @@ func (bot telegramBot) handleCommandFromMessage(message message) {
 		return
 	}
 
-	handler := bot.handlersRegistry.getTextHandlerByCommand(command)
-	context := Context{bot: bot, Message: message}
-	handler.Handle(&context)
+	handler := bot.handlersRegistry.getHandlerByCommand(command)
+	bundle := newBundle(&bot, &message)
+	handler(bundle)
 }
 
-func (bot telegramBot) processUpdateFromPrivateChat(update update) { 
+func (bot telegramBot) processUpdateFromPrivateChat(update update) {
 	message := update.Message
 	bot.handleCommandFromMessage(message)
 }

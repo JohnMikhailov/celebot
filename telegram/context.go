@@ -1,19 +1,34 @@
 package telegram
 
 
-type MessageHandler interface {
-	Handle(c *Context)
+type Bundle interface {
+	Bot() *telegramBot
+	Message() *message
+	SendMessage(text, chatId string) *message
+	SendMessageWithKeyboard(text, chatId string, keyboard ReplyKeyboardMarkup) *message
 }
 
-type Context struct {
-	bot telegramBot
-	Message message
+type bundle struct {
+	bot *telegramBot
+	message *message
 }
 
-func (c *Context) SendMessage(text, chatId string, needForceReply bool) *message {
-	return c.bot.client.SendMessage(text, chatId, needForceReply)
+func newBundle(bot *telegramBot, message *message) *bundle {
+	return &bundle{bot: bot, message: message}
 }
 
-func (c *Context) SendMessageWithKeyboard(text, chatId string, keyboard ReplyKeyboardMarkup) *message {
-	return c.bot.client.SendKeyboard(text, chatId, keyboard)
+func (b *bundle) Message() *message {
+	return b.message
+}
+
+func (b *bundle) Bot() *telegramBot {
+	return b.bot
+}
+
+func (b *bundle) SendMessage(text, chatId string) *message {
+	return b.Bot().client.SendMessage(text, chatId, true)
+}
+
+func (b *bundle) SendMessageWithKeyboard(text, chatId string, keyboard ReplyKeyboardMarkup) *message {
+	return b.Bot().client.SendKeyboard(text, chatId, keyboard)
 }

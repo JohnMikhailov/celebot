@@ -1,16 +1,13 @@
 package telegram
 
+type handlerType func(bundle Bundle) error
 
 type handlersRegistry struct {
-	handlers map[string]MessageHandler
+	handlers    map[string]handlerType
 }
 
 func newHandlersRegistry() handlersRegistry {
-	return handlersRegistry{handlers: map[string]MessageHandler{}}
-}
-
-func (registry *handlersRegistry) addEventHandler(textCommand string, handler MessageHandler) {
-	registry.handlers[textCommand] = handler
+	return handlersRegistry{handlers: map[string]handlerType{}}
 }
 
 func (registry *handlersRegistry) handlerExists(commandName string) bool {
@@ -20,10 +17,14 @@ func (registry *handlersRegistry) handlerExists(commandName string) bool {
 	return false
 }
 
-func (registry *handlersRegistry) getTextHandlerByCommand(commandName string) MessageHandler {
+func (registry *handlersRegistry) getHandlerByCommand(commandName string) handlerType {
 	if !registry.handlerExists(commandName) {
 		return nil
 	}
 	val := registry.handlers[commandName]
 	return val
+}
+
+func (registry *handlersRegistry) addHandler(commandName string, handler handlerType) {
+	registry.handlers[commandName] = handler
 }
