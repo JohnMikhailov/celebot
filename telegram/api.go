@@ -27,7 +27,7 @@ func (client apiClient) SendMessage(chatId, text string, needForceReply bool) *m
 	res := message {}
 	errorRes := errorResponse{}
 	url := client.urlHead + client.token + "/sendMessage"
-	
+
 	body := map[string]string{"chat_id": chatId, "text": text}
 	if needForceReply {
 		force_reply_json, err := json.Marshal(map[string]bool{"force_reply": true, "selective": true})
@@ -102,7 +102,7 @@ func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
 	return &res
 }
 
-func (client apiClient) SendKeyboard(chatId, text string, keyboard ReplyKeyboardMarkup) *message {
+func (client apiClient) SendKeyboard(chatId string, keyboard ReplyKeyboardMarkup) *message {
 	// add url query schema https://core.telegram.org/bots/api#sendmessage
 	// TODO use url module
 	// TODO add user-agent header
@@ -111,7 +111,7 @@ func (client apiClient) SendKeyboard(chatId, text string, keyboard ReplyKeyboard
 	errorRes := errorResponse{}
 	url := client.urlHead + client.token + "/sendMessage"
 
-	body := map[string]string{"chat_id": chatId, "text": text}
+	body := map[string]string{"chat_id": chatId}
 	keyboard_json, err := json.Marshal(keyboard)
 	if err != nil {
 		log.Fatal(err)

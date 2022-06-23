@@ -26,7 +26,7 @@ func (user *User) Save() error {
 }
 
 func (user *User) GetById(fetchFriends bool) error {
-	stmt, err := Client.Prepare("SELECT id, name, tgusername FROM user WHERE id=$1;")
+	stmt, err := Client.Prepare("SELECT id, name, tgusername, chatid, birthday FROM user WHERE id=$1;")
     if err != nil {
         log.Println("Error when trying to prepare statement for getting user by id")
         return err
@@ -35,7 +35,7 @@ func (user *User) GetById(fetchFriends bool) error {
 
     result := stmt.QueryRow(user.ID)
 
-	if err := result.Scan(&user.ID, &user.Name, &user.TGusername); err != nil {
+	if err := result.Scan(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday); err != nil {
         log.Println("Error when trying to get User by ID")
         return err
     }
@@ -69,14 +69,14 @@ func (user *User) GetById(fetchFriends bool) error {
 
 func (user *User) GetFriendsByBirthDate(birthDay string, limit, offset int) error {
     stmt, err := Client.Prepare(
-        "SELECT id, name, birthday, userid, chatid FROM friend WHERE birthday like $1 LIMIT $2 OFFSET $3;",
+        "SELECT id, name, birthday, userid, chatid FROM friend WHERE birthday like $1 or birthday like $2 LIMIT $3 OFFSET $4;",
     )
     if err != nil {
         log.Println("Error when trying to prepare statement for fetching friends for user")
         return err
     }
 
-    results, err := stmt.Query(birthDay + ".%", limit, offset)
+    results, err := stmt.Query(birthDay + ".%", birthDay, limit, offset)
     if err != nil {
         log.Println("Error when fetching friends for user by birthday")
         return err
@@ -90,6 +90,23 @@ func (user *User) GetFriendsByBirthDate(birthDay string, limit, offset int) erro
             continue
         }
         user.Friends = append(user.Friends, friend)
+    }
+
+    return nil
+}
+
+func (user *User) Update() error {
+    stmt, err := Client.Prepare(
+        "UPDATE user SET name=$1, tgusername=$2, chatid=$3, birthday=$4 where id=$5",
+    )
+    if err != nil {
+        log.Println("Error when trying to prepare statement for updating user")
+        return err
+    }
+    _, err = stmt.Exec(user.Name, user.TGusername, user.ChatId, user.Birthday, user.ID)
+    if err != nil {
+        log.Println("Error when updating user")
+        return err
     }
 
     return nil

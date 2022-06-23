@@ -32,6 +32,23 @@ type Friend struct {
 	ChatId int `json:"chatid"`
 }
 
+type Chat struct {
+	ID int `json:"id"`
+	Type string `json:"type"`
+	Title string `json:"title"`
+	Username string `json:"username"`
+	FirstName string `json:"firstname"`
+	LastName string `json:"lastname"`
+}
+
+type UserChat struct {
+	ChatTitile string `json:"chattitle"`
+	ChatUserName string `json:"chatusername"`
+	ChatId string `json:"chatid"`
+	UserName string `json:"username"`
+	UserId string `json:"userid"`
+}
+
 func (friend Friend) GetChatIdStr() string {
 	return strconv.Itoa(friend.ChatId)
 }

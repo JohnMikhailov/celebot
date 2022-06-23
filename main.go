@@ -11,7 +11,9 @@ func main() {
 	commands.RunChecks()
 	bot := telegram.NewBot(token)
 	bot.AddHandler("/start", commands.StartCommand)
-	bot.AddHandler("/addme", commands.SaveBirthdayCommand)
+	bot.AddHandler("/addme", commands.SaveBirthdayWithArgs)
 	bot.AddHandler("/mybirthday", commands.GetBirthDay)
+	bot.AddHandler("/henrysclub", commands.ListFromHenrysClub)
+	bot.AddHandler("/help", commands.HelpCommand)
 	bot.StartPolling()
 }

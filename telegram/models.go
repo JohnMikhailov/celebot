@@ -116,8 +116,11 @@ type ReplyKeyboardRemove struct {
 	Selective bool `json:"selective"`
 }
 
-type replyKeyboardMarkup struct {
-	Keyboard [][]KeyboardButton `json:"keyboard"`
-	OneTimeKeyboard bool `json:"one_time_keyboard"`
-	Selective bool `json:"selective"`
+type Chat struct {
+	ID int `json:"id"`
+	Type string `json:"type"`
+	Title string `json:"title"`
+	Username string `json:"username"`
+	FirstName string `json:"first_name"`
+	LastName string `json:"last_name"`
 }

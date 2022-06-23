@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"log"
 	"strconv"
 	"strings"
 
@@ -9,16 +8,6 @@ import (
 	"github.com/meehighlov/celebot/app/db"
 	"github.com/meehighlov/celebot/telegram"
 )
-
-// func (handler *AddMyBirthdayReplyCommand) Handle(c *telegram.Context) {
-// 	if !app.IsAllowedUser(c.Message.From.Username) {
-// 		return
-// 	}
-// 	user := db.User{ID: c.Message.From.Id}
-// 	user.GetById(false)
-// 	user.Birthday = c.Message.Text
-// 	c.SendMessage("Your birtday is saved!", c.Message.GetChatIdStr(), false)
-// }
 
 func getButtonsRow(texts []string) []telegram.KeyboardButton {
 	buttons := make([]telegram.KeyboardButton, 3)
@@ -44,31 +33,7 @@ func AddMyBirthdayCommand(b telegram.Bundle) error {
 		return nil
 	}
 	keyboard := telegram.ReplyKeyboardMarkup{Keyboard: getKeyboardWithMonths(), Selective: false, OneTimeKeyboard: true}
-	b.SendMessageWithKeyboard(message.GetChatIdStr(), "ok! tell me the month", keyboard)
-
-	return nil
-}
-
-func SaveBirthdayCommand(b telegram.Bundle) error {
-	message := b.Message()
-	firstStepText := "Send your birthday in format: dd.mm, for example 01.03 (march third)"
-	errorStepText := "Ooops! I think birthday is not in format: dd.mm"
-	if !app.IsAllowedUser(message.From.Username) {
-		return nil
-	}
-
-	log.Println("reply text: " + message.ReplyToMessage.Text)
-
-	switch message.ReplyToMessage.Text {
-		case firstStepText:
-			SaveBirthday(b)
-			return nil
-		case errorStepText:
-			b.SendMessage(message.GetChatIdStr(), firstStepText)
-			return nil
-	}
-
-	b.SendMessage(message.GetChatIdStr(), firstStepText)
+	b.SendMessageWithKeyboard(message.GetChatIdStr(), keyboard)
 
 	return nil
 }
@@ -89,24 +54,33 @@ func isBirthdatyCorrect(birtday string) bool {
 	return true
 }
 
-func SaveBirthday(b telegram.Bundle) error {
+func SaveBirthdayWithArgs(b telegram.Bundle) error {
 	message := b.Message()
-	errorStepText := "Ooops! I think birthday is not in format: dd.mm"
-	if !isBirthdatyCorrect(message.Text) {
-		b.SendMessage(message.GetChatIdStr(), errorStepText)
+
+	birthDayArgs := b.Args()
+	if len(birthDayArgs) != 1 || !isBirthdatyCorrect(birthDayArgs[0]) {
+		b.SendMessage(
+			message.GetChatIdStr(),
+			"Hmm, i guess there is some typo... try again" + "\n" +
+			"Stuck? Call /help for commands description",
+			false,
+		)
 		return nil
 	}
+
+	birthDay := birthDayArgs[0]
 
 	user := db.User {ID: message.From.Id}
 	user.GetById(false)
 
-	user.Birthday = message.Text
-	user.Save()
+	user.Birthday = birthDay
+	user.Update()
 
 	b.SendMessage(
 		message.GetChatIdStr(),
-		"I saved your birthday! It is " + "message.Text" + "\n" +
+		"I saved your birthday! It is " + message.Text + "\n" +
 		" - if you made a mistake, please call /addme again",
+		false,
 	)
 
 	return nil
@@ -118,18 +92,24 @@ func GetBirthDay(b telegram.Bundle) error {
 		return nil
 	}
 
-	user := db.User {ID: message.From.Id}
+	user := db.User{ID: message.From.Id}
 	err := user.GetById(false)
 
 	if err != nil {
-		b.SendMessage(message.GetChatIdStr(), "Hmm, it seems like i don't know your birhday yet... try to call /addme")
+		b.SendMessage(message.GetChatIdStr(), "Ooops! ", false)
 		return err
 	}
 
-	b.SendMessage(message.GetChatIdStr(), "Your birthday is: " + user.Birthday)
+	b.SendMessage(message.GetChatIdStr(), "Your birthday is: " + user.Birthday, false)
 
 	return nil
 }
+
+func isUserInSelectedGroup(b telegram.Bundle) bool {
+	return true
+}
+
+func saveUserChat(b telegram.Bundle) {}
 
 func StartCommand(b telegram.Bundle) error {
 	message := b.Message()
@@ -146,9 +126,14 @@ func StartCommand(b telegram.Bundle) error {
 
 	user.Save()
 
+	if isUserInSelectedGroup(b) {
+		saveUserChat(b)
+	}
+
 	b.SendMessage(
 		message.GetChatIdStr(),
 		"Hello, i'm celebot! Tell me about your friends birthdays and i will remind you about it ;)",
+		true,
 	)
 
 	return nil
@@ -166,30 +151,37 @@ func ShowMeCommand(b telegram.Bundle) error {
 	b.SendMessage(
 		message.GetChatIdStr(),
 		"your username is: " + user.TGusername,
+		true,
 	)
 
 	return nil
 }
 
-func getCommandParams(text string) map[string]string {
-	// command syntax: command param1=value1 param2=value2
-	log.Println("raw message text:", text)
-	trancatedCommand := strings.Fields(text)
+func HelpCommand(b telegram.Bundle) error {
+	b.SendMessage(
+		b.Message().GetChatIdStr(),
+		"I will remind you about birthdays! Here is what i can do..." + "\n\n" +
+		"/addme - add your birth day" + "\n" +
+		"/addfriend - add your friend's birthday" + "\n" +
+		"/mybirthday - show your birthday",
+		false,
+	)
 
-	var preparedParams = map[string]string{}
+	return nil
+}
 
-	params := trancatedCommand[1:]
+func isHenry(username string) bool {
+	return true
+}
 
-	for _, param := range params {
-		splitedParam := strings.Split(param, "=")
-		if len(splitedParam) > 1 {
-			paramName := splitedParam[0]
-			paramValue := splitedParam[1]
-			preparedParams[paramName] = paramValue
-		}
+func showBirthdaysFromHenrysClub(b telegram.Bundle) {
+	
+}
+
+func ListFromHenrysClub(b telegram.Bundle) error {
+	message := b.Message()
+	if isHenry(message.From.Username) {
+		showBirthdaysFromHenrysClub(b)
 	}
-
-	log.Println("prepared params:", preparedParams)
-
-	return preparedParams
+	return nil
 }
