@@ -58,7 +58,18 @@ func (bot telegramBot) StartPolling() {
 	pollingMaster.shutdown()
 }
 
-func (bot telegramBot) handleCommandFromMessage(message message) {
+func (bot telegramBot) handleMessage(message message) {
+	if message.IsReply() && message.ReplyToMessage.From.Username == "test_celebot" {
+		if !bot.handlersRegistry.replyHandlerExist(message.ReplyToMessage.Text) {
+			log.Println("Reply handler not registered! Skiping, original text was: " + message.Text)
+			return
+		}
+		handler := bot.handlersRegistry.getReplyHandlerByMessageText(message.ReplyToMessage.Text)
+		bundle := newBundle(&bot, &message)
+		handler(bundle)
+		return
+	}
+
 	command := message.getCommand()
 	if !bot.handlersRegistry.handlerExists(command) {
 		log.Println("Command handler not registered! Skiping, original text was: " + message.Text)
@@ -72,12 +83,12 @@ func (bot telegramBot) handleCommandFromMessage(message message) {
 
 func (bot telegramBot) processUpdateFromPrivateChat(update update) {
 	message := update.Message
-	bot.handleCommandFromMessage(message)
+	bot.handleMessage(message)
 }
 
 func (bot telegramBot) processUpdateFromGroup(update update) {
 	message := update.Message
-	bot.handleCommandFromMessage(message)
+	bot.handleMessage(message)
 }
 
 func (bot telegramBot) processUpdate(update update) {

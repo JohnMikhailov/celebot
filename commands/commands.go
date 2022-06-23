@@ -29,11 +29,27 @@ func getKeyboardWithMonths() [][]telegram.KeyboardButton{
 
 func AddMyBirthdayCommand(b telegram.Bundle) error {
 	message := b.Message()
-	if !app.IsAllowedUser(message.From.Username) {
+
+	b.SendMessage(message.GetChatIdStr(), "type your birthday (dd.mm)", true)
+
+	return nil
+}
+
+func AddMyBirthdayCommandReply(b telegram.Bundle) error {
+	message := b.Message()
+
+	if !isBirthdatyCorrect(b.Message().Text) {
+		b.SendMessage(message.GetChatIdStr(), "hmm, i guess there is a typo, try again", true)
 		return nil
 	}
-	keyboard := telegram.ReplyKeyboardMarkup{Keyboard: getKeyboardWithMonths(), Selective: false, OneTimeKeyboard: true}
-	b.SendMessageWithKeyboard(message.GetChatIdStr(), keyboard)
+
+	user := db.User {ID: message.From.Id}
+	user.GetById(false)
+
+	user.Birthday = message.Text
+	user.Update()
+
+	b.SendMessage(message.GetChatIdStr(), "Cool, i saved your birthday!", false)
 
 	return nil
 }
@@ -175,7 +191,7 @@ func isHenry(username string) bool {
 }
 
 func showBirthdaysFromHenrysClub(b telegram.Bundle) {
-	
+
 }
 
 func ListFromHenrysClub(b telegram.Bundle) error {

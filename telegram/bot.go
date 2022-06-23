@@ -17,3 +17,7 @@ func NewBot(token string) telegramBot {
 func (bot telegramBot) AddHandler(textCommand string, handler handlerType) {
 	bot.handlersRegistry.addHandler(textCommand, handler)
 }
+
+func (bot telegramBot) AddReplyHandler(replyText string, handler handlerType) {
+	bot.handlersRegistry.addReplyHandler(replyText, handler)
+}
