@@ -7,6 +7,7 @@ import "strings"
 type Bundle interface {
 	Bot() *telegramBot
 	Message() *message
+	Update() *update
 	SendMessage(text, chatId string, needForceReply bool) *message
 	SendMessageWithKeyboard(chatId string, keyboard ReplyKeyboardMarkup) *message
 	Args() []string
@@ -15,14 +16,19 @@ type Bundle interface {
 type bundle struct {
 	bot *telegramBot
 	message *message
+	update *update
 }
 
-func newBundle(bot *telegramBot, message *message) *bundle {
-	return &bundle{bot: bot, message: message}
+func newBundle(bot *telegramBot, message *message, update *update) *bundle {
+	return &bundle{bot: bot, message: message, update: update}
 }
 
 func (b *bundle) Message() *message {
 	return b.message
+}
+
+func (b *bundle) Update() *update {
+	return b.update
 }
 
 func (b *bundle) Bot() *telegramBot {

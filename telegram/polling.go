@@ -58,37 +58,38 @@ func (bot telegramBot) StartPolling() {
 	pollingMaster.shutdown()
 }
 
-func (bot telegramBot) handleMessage(message message) {
+func (bot telegramBot) handleMessage(update update) {
+	message := update.Message
+	bundle := newBundle(&bot, &message, &update)
 	if message.IsReply() && message.ReplyToMessage.From.Username == "test_celebot" {
 		if !bot.handlersRegistry.replyHandlerExist(message.ReplyToMessage.Text) {
 			log.Println("Reply handler not registered! Skiping, original text was: " + message.Text)
 			return
 		}
 		handler := bot.handlersRegistry.getReplyHandlerByMessageText(message.ReplyToMessage.Text)
-		bundle := newBundle(&bot, &message)
 		handler(bundle)
 		return
 	}
 
 	command := message.getCommand()
 	if !bot.handlersRegistry.handlerExists(command) {
-		log.Println("Command handler not registered! Skiping, original text was: " + message.Text)
-		return
+		if bot.handlersRegistry.defaultHandler == nil {
+			log.Println("skipping: " + message.GetChatIdStr())
+			return
+		}
+		bot.handlersRegistry.defaultHandler(bundle)
 	}
 
 	handler := bot.handlersRegistry.getHandlerByCommand(command)
-	bundle := newBundle(&bot, &message)
 	handler(bundle)
 }
 
 func (bot telegramBot) processUpdateFromPrivateChat(update update) {
-	message := update.Message
-	bot.handleMessage(message)
+	bot.handleMessage(update)
 }
 
 func (bot telegramBot) processUpdateFromGroup(update update) {
-	message := update.Message
-	bot.handleMessage(message)
+	bot.handleMessage(update)
 }
 
 func (bot telegramBot) processUpdate(update update) {

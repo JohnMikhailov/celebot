@@ -7,10 +7,15 @@ type handlerType func(bundle Bundle) error
 type handlersRegistry struct {
 	handlers    map[string]handlerType
 	replyHandlers map[string]handlerType
+	defaultHandler handlerType
 }
 
 func newHandlersRegistry() handlersRegistry {
-	return handlersRegistry{handlers: map[string]handlerType{}, replyHandlers: map[string]handlerType{}}
+	return handlersRegistry{
+		handlers: map[string]handlerType{},
+		replyHandlers: map[string]handlerType{},
+		defaultHandler: nil,
+	}
 }
 
 func (registry *handlersRegistry) handlerExists(commandName string) bool {

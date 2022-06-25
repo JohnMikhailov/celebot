@@ -18,16 +18,25 @@ func getButtonsRow(texts []string) []telegram.KeyboardButton {
 	return buttons
 }
 
-func getKeyboardWithMonths() [][]telegram.KeyboardButton{
+func getKeyboardWithMonths() [][]telegram.KeyboardButton {
 	// вынести создание клавиатуры в либу
 	return [][]telegram.KeyboardButton{
 		getButtonsRow([]string{"jan", "feb", "mar", "apr"}),
-		getButtonsRow([]string{"may", "jun", "jul", "aug",}),
+		getButtonsRow([]string{"may", "jun", "jul", "aug"}),
 		getButtonsRow([]string{"sep", "oct", "nov", "dec"}),
 	}
 }
 
-func AddMyBirthdayCommand(b telegram.Bundle) error {
+func getKeyboardWithDigits() [][]telegram.KeyboardButton {
+	// вынести создание клавиатуры в либу
+	return [][]telegram.KeyboardButton{
+		getButtonsRow([]string{"0", "1", "2", "3"}),
+		getButtonsRow([]string{"4", "5", "6", "7"}),
+		getButtonsRow([]string{"8", "9", "."}),
+	}
+}
+
+func SetMyBirthdayCommand(b telegram.Bundle) error {
 	message := b.Message()
 
 	b.SendMessage(message.GetChatIdStr(), "type your birthday (dd.mm)", true)
@@ -35,7 +44,7 @@ func AddMyBirthdayCommand(b telegram.Bundle) error {
 	return nil
 }
 
-func AddMyBirthdayCommandReply(b telegram.Bundle) error {
+func SetMyBirthdayCommandReply(b telegram.Bundle) error {
 	message := b.Message()
 
 	if !isBirthdatyCorrect(b.Message().Text) {
@@ -43,20 +52,20 @@ func AddMyBirthdayCommandReply(b telegram.Bundle) error {
 		return nil
 	}
 
-	user := db.User {ID: message.From.Id}
+	user := db.User{ID: message.From.Id}
 	user.GetById(false)
 
 	user.Birthday = message.Text
 	user.Update()
 
-	b.SendMessage(message.GetChatIdStr(), "Cool, i saved your birthday!", false)
+	b.SendMessage(message.GetChatIdStr(), "Cool, i've saved your birthday!", false)
 
 	return nil
 }
 
 func isBirthdatyCorrect(birtday string) bool {
 	parts := strings.Split(birtday, ".")
-	if len(parts) != 2 || (len(parts[0]) + len(parts[1])) != 4 {
+	if len(parts) != 2 || (len(parts[0])+len(parts[1])) != 4 {
 		return false
 	}
 
@@ -68,38 +77,6 @@ func isBirthdatyCorrect(birtday string) bool {
 	}
 
 	return true
-}
-
-func SaveBirthdayWithArgs(b telegram.Bundle) error {
-	message := b.Message()
-
-	birthDayArgs := b.Args()
-	if len(birthDayArgs) != 1 || !isBirthdatyCorrect(birthDayArgs[0]) {
-		b.SendMessage(
-			message.GetChatIdStr(),
-			"Hmm, i guess there is some typo... try again" + "\n" +
-			"Stuck? Call /help for commands description",
-			false,
-		)
-		return nil
-	}
-
-	birthDay := birthDayArgs[0]
-
-	user := db.User {ID: message.From.Id}
-	user.GetById(false)
-
-	user.Birthday = birthDay
-	user.Update()
-
-	b.SendMessage(
-		message.GetChatIdStr(),
-		"I saved your birthday! It is " + message.Text + "\n" +
-		" - if you made a mistake, please call /addme again",
-		false,
-	)
-
-	return nil
 }
 
 func GetBirthDay(b telegram.Bundle) error {
@@ -116,7 +93,7 @@ func GetBirthDay(b telegram.Bundle) error {
 		return err
 	}
 
-	b.SendMessage(message.GetChatIdStr(), "Your birthday is: " + user.Birthday, false)
+	b.SendMessage(message.GetChatIdStr(), "Your birthday is: "+user.Birthday, false)
 
 	return nil
 }
@@ -133,11 +110,11 @@ func StartCommand(b telegram.Bundle) error {
 		return nil
 	}
 
-	user := db.User {
-		ID: message.From.Id,
-		Name: message.From.FirstName,
+	user := db.User{
+		ID:         message.From.Id,
+		Name:       message.From.FirstName,
 		TGusername: message.From.Username,
-		ChatId: message.Chat.Id,
+		ChatId:     message.Chat.Id,
 	}
 
 	user.Save()
@@ -155,31 +132,13 @@ func StartCommand(b telegram.Bundle) error {
 	return nil
 }
 
-func ShowMeCommand(b telegram.Bundle) error {
-	message := b.Message()
-	if !app.IsAllowedUser(message.From.Username) {
-		return nil
-	}
-	user := db.User{ID: message.From.Id}
-	fetchFriends := false
-	user.GetById(fetchFriends)
-
-	b.SendMessage(
-		message.GetChatIdStr(),
-		"your username is: " + user.TGusername,
-		true,
-	)
-
-	return nil
-}
-
 func HelpCommand(b telegram.Bundle) error {
 	b.SendMessage(
 		b.Message().GetChatIdStr(),
-		"I will remind you about birthdays! Here is what i can do..." + "\n\n" +
-		"/addme - add your birth day" + "\n" +
-		"/addfriend - add your friend's birthday" + "\n" +
-		"/mybirthday - show your birthday",
+		"I will remind you about birthdays! Here is what i can do..."+"\n\n"+
+			"/addme - add your birth day"+"\n"+
+			"/addfriend - add your friend's birthday"+"\n"+
+			"/mybirthday - show your birthday",
 		false,
 	)
 

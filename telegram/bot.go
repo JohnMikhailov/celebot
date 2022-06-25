@@ -21,3 +21,7 @@ func (bot telegramBot) AddHandler(textCommand string, handler handlerType) {
 func (bot telegramBot) AddReplyHandler(replyText string, handler handlerType) {
 	bot.handlersRegistry.addReplyHandler(replyText, handler)
 }
+
+func (bot telegramBot) SetDefaultHandler(handler handlerType) {
+	bot.handlersRegistry.defaultHandler = handler
+}

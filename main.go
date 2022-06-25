@@ -11,14 +11,21 @@ func main() {
 	commands.RunChecks()
 	bot := telegram.NewBot(token)
 	bot.AddHandler("/start", commands.StartCommand)
-	bot.AddHandler("/addme", commands.SaveBirthdayWithArgs)
 	bot.AddHandler("/mybirthday", commands.GetBirthDay)
 	bot.AddHandler("/henrysclub", commands.ListFromHenrysClub)
 	bot.AddHandler("/help", commands.HelpCommand)
 
-	bot.AddHandler("/add", commands.AddMyBirthdayCommand)
-	bot.AddReplyHandler("type your birthday (dd.mm)", commands.AddMyBirthdayCommandReply)
-	bot.AddReplyHandler("hmm, i guess there is a typo, try again", commands.AddMyBirthdayCommandReply)
+	bot.AddHandler("/setbirthday", commands.SetMyBirthdayCommand)
+	bot.AddReplyHandler("type your birthday (dd.mm)", commands.SetMyBirthdayCommandReply)
+	bot.AddReplyHandler("hmm, i guess there is a typo, try again", commands.SetMyBirthdayCommandReply)
+
+	bot.SetDefaultHandler(
+		func(b telegram.Bundle) error {
+			b.SendMessage(b.Message().GetChatIdStr(), b.Message().NewChatMembers[0].Username, false)
+
+			return nil
+		},
+	)
 
 	bot.StartPolling()
 }

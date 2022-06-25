@@ -49,6 +49,7 @@ type message struct {
 	Chat chat `json:"chat"`
 	Text string  `json:"text"`
 	ReplyToMessage replyToMessage `json:"reply_to_message"`
+	NewChatMembers []user `json:"new_chat_members"`
 }
 
 func (m *message) IsReply() bool {
