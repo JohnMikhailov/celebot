@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"log"
 	"strconv"
 	"strings"
 
@@ -175,13 +176,32 @@ func isBotAddedToGroupEvent(b telegram.Bundle) bool {
 }
 
 func saveGroup(b telegram.Bundle) {
-	// use Chat model
+	messgae := b.Message()
+	chat := messgae.Chat
 
-	// 1 save chat id
-	// 2 save admins -- use getChatAdministrators
+	owner, err := b.GetChatOwner(messgae.GetChatIdStr())
+	if err != nil {
+		log.Println("Error getting chat owner: " + err.Error())
+		return
+	}
+
+	newChat := db.Chat{
+		ID: chat.Id,
+		Type: chat.Type,
+		Title: chat.Title,
+		Username: chat.Username,
+		FirstName: chat.FirstName,
+		LastName: chat.LastName,
+		OwnerId: owner.User.Id,
+	}
+
+	err = newChat.Save()
+	if err != nil {
+		log.Println("Chat saving failed: " + err.Error())
+	}
 }
 
-func GroupJoin(b telegram.Bundle) error {
+func ProcessGroupJoin(b telegram.Bundle) error {
 	saveGroup(b)
 
 	return nil
@@ -189,7 +209,7 @@ func GroupJoin(b telegram.Bundle) error {
 
 func DefaultHandler(b telegram.Bundle) error {
 	if isBotAddedToGroupEvent(b) {
-		return GroupJoin(b)
+		return ProcessGroupJoin(b)
 	}
 	return nil
 }

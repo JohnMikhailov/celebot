@@ -39,6 +39,7 @@ type Chat struct {
 	Username string `json:"username"`
 	FirstName string `json:"firstname"`
 	LastName string `json:"lastname"`
+	OwnerId int `json:"ownerid"`
 }
 
 type UserChat struct {
@@ -51,9 +52,4 @@ type UserChat struct {
 
 func (friend Friend) GetChatIdStr() string {
 	return strconv.Itoa(friend.ChatId)
-}
-
-type Congratulations struct {
-	ID int `json:"id"`
-	Text string `json:"text"`
 }

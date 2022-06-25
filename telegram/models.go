@@ -8,24 +8,34 @@ import (
 
 type chat struct {
 	// full description https://core.telegram.org/bots/api#chat
-
-	Id int `json:"id"`
-
 	//Type of chat, can be either “private”, “group”, “supergroup” or “channel”
-	Type string  `json:"type"`
-
-	Title string  `json:"title"`
-	Username string  `json:"username"`
+	Id int `json:"id"`
+	Type string `json:"type"`
+	Title string `json:"title"`
+	Username string `json:"username"`
+	FirstName string `json:"firstname"`
+	LastName string `json:"lastname"`
+	OwnerId string
 }
 
 type user struct {
 	// full description https://core.telegram.org/bots/api#user
-
 	Id int  `json:"id"`
 	IsBot bool  `json:"is_bot"`
 	FirstName string  `json:"first_name"`
 	LastName string  `json:"last_name"`
 	Username string  `json:"username"`
+}
+
+type chatMember struct {
+	// full description https://core.telegram.org/bots/api#chatmemberowner
+	Status string `json:"status"`
+	User user `json:"user"`
+}
+
+type chatMemberResponse struct {
+	Ok bool `json:"ok"`
+	Result []chatMember `json:"result"`
 }
 
 type forceReply struct {
@@ -93,6 +103,10 @@ func (message message) GetChatIdStr() string {
 	return strconv.Itoa(message.Chat.Id)
 }
 
+func (message message) GetSenderChatIdStr() string {
+	return strconv.Itoa(message.SenderChat.Id)
+}
+
 func (message message) getCommand() string {
 	parts := strings.Fields(message.Text)
 	if len(parts) > 0 {
@@ -115,13 +129,4 @@ type ReplyKeyboardMarkup struct {
 type ReplyKeyboardRemove struct {
 	RemoveKeyboard bool `json:"remove_keyboard"`
 	Selective bool `json:"selective"`
-}
-
-type Chat struct {
-	ID int `json:"id"`
-	Type string `json:"type"`
-	Title string `json:"title"`
-	Username string `json:"username"`
-	FirstName string `json:"first_name"`
-	LastName string `json:"last_name"`
 }

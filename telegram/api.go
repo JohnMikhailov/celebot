@@ -147,3 +147,47 @@ func (client apiClient) SendKeyboard(chatId string, keyboard ReplyKeyboardMarkup
 
 	return &res
 }
+
+func (client apiClient) GetChatAdministrators(chatId string) (*[]chatMember, error) {
+	// TODO use url module
+	// TODO add user-agent header
+	// TODO use model for body
+	url := client.urlHead + client.token + "/getChatAdministrators"
+
+	body := map[string]string{"chat_id": chatId}
+	json_data, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(json_data))
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	res := chatMemberResponse{}
+	errorRes := errorResponse{}
+
+	bodyString := string(bodyBytes)
+	json.Unmarshal([]byte(bodyString), &res)
+
+	if resp.StatusCode == http.StatusOK {
+		if err != nil {
+			log.Fatal(err)
+		}
+		json.Unmarshal([]byte(bodyString), &res)
+	} else {
+		json.Unmarshal([]byte(bodyString), &errorRes)
+		log.Println(errorRes.Description)
+	}
+
+	return &res.Result, nil
+}
