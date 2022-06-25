@@ -23,5 +23,5 @@ func (bot telegramBot) AddReplyHandler(replyText string, handler handlerType) {
 }
 
 func (bot telegramBot) SetDefaultHandler(handler handlerType) {
-	bot.handlersRegistry.defaultHandler = handler
+	bot.handlersRegistry.addDefaultHandler(handler)
 }

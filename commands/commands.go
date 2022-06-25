@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"log"
 	"strconv"
 	"strings"
 
@@ -157,6 +158,31 @@ func ListFromHenrysClub(b telegram.Bundle) error {
 	message := b.Message()
 	if isHenry(message.From.Username) {
 		showBirthdaysFromHenrysClub(b)
+	}
+	return nil
+}
+
+func IsBotAddedToGroupEvent(b telegram.Bundle) bool {
+	message := b.Message()
+	if message.NewChatMembers == nil {
+		return false	
+	}
+	for _, mem := range message.NewChatMembers {
+		if mem.IsBot && mem.Username == "test_celebot" {
+			return true
+		}
+	}
+	return false
+}
+
+func GroupJoin(b telegram.Bundle) error {
+	log.Println("this is a group join event")
+	return nil
+}
+
+func DefaultHandler(b telegram.Bundle) error {
+	if IsBotAddedToGroupEvent(b) {
+		return GroupJoin(b)
 	}
 	return nil
 }

@@ -7,14 +7,14 @@ type handlerType func(bundle Bundle) error
 type handlersRegistry struct {
 	handlers    map[string]handlerType
 	replyHandlers map[string]handlerType
-	defaultHandler handlerType
+	defaultHandlers map[string]handlerType
 }
 
 func newHandlersRegistry() handlersRegistry {
 	return handlersRegistry{
 		handlers: map[string]handlerType{},
 		replyHandlers: map[string]handlerType{},
-		defaultHandler: nil,
+		defaultHandlers: map[string]handlerType{},
 	}
 }
 
@@ -54,4 +54,12 @@ func (registry *handlersRegistry) addHandler(commandName string, handler handler
 
 func (registry *handlersRegistry) addReplyHandler(replyText string, handler handlerType) {
 	registry.replyHandlers[replyText] = handler
+}
+
+func (registy *handlersRegistry) addDefaultHandler(handler handlerType) {
+	registy.defaultHandlers["default"] = handler
+}
+
+func (registry *handlersRegistry) getDefaultHandler() handlerType {
+	return registry.defaultHandlers["default"]
 }

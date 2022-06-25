@@ -19,13 +19,7 @@ func main() {
 	bot.AddReplyHandler("type your birthday (dd.mm)", commands.SetMyBirthdayCommandReply)
 	bot.AddReplyHandler("hmm, i guess there is a typo, try again", commands.SetMyBirthdayCommandReply)
 
-	bot.SetDefaultHandler(
-		func(b telegram.Bundle) error {
-			b.SendMessage(b.Message().GetChatIdStr(), b.Message().NewChatMembers[0].Username, false)
-
-			return nil
-		},
-	)
+	bot.SetDefaultHandler(commands.DefaultHandler)
 
 	bot.StartPolling()
 }
