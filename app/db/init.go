@@ -48,7 +48,7 @@ func create_tables(client *sql.DB) error {
 		id INTEGER PRIMARY KEY,
 		userid INTEGER,
 		chatid INTEGER,
-		UNIQUE(userid, chatid)
+		UNIQUE (userid, chatid)
 	);`
 
 	for _, table := range []string{

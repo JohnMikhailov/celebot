@@ -91,8 +91,9 @@ func GetChatMembers(chatId int) (*[]User, error) {
 func (userChat *UserChat) Save() error {
 	stmt, err := Client.Prepare(
 		"INSERT INTO userchat(userid, chatid) " +
-		"VALUES($1, $2) " +
-		"ON CONFLICT(userid, chatid) DO NOTHING;",
+		"VALUES($2, $3) " +
+		"ON CONFLICT(userid, chatid) DO NOTHING " +
+		"RETURNING id;",
 	)
 	if err != nil {
 		log.Println("Error when trying to prepare statement for saving userchat: " + err.Error())
@@ -100,10 +101,10 @@ func (userChat *UserChat) Save() error {
 	}
 	defer stmt.Close()
 
-	insertErr := stmt.QueryRow(&userChat.UserId, &userChat.ChatId)
-	if insertErr.Err() != nil {
-		log.Println("Error when trying to save userchat: " + insertErr.Err().Error())
-		return insertErr.Err()
+	insertErr := stmt.QueryRow(&userChat.UserId, &userChat.ChatId).Scan(&userChat.ID)
+	if insertErr != nil {
+		log.Println("Error when trying to save userchat: " + insertErr.Error())
+		return insertErr
 	}
 	log.Println("UserChat created/updated")
 
@@ -157,6 +158,27 @@ func (chat *Chat) Delete() error {
 	}
 
 	log.Println("Chat deleted")
+
+	return nil
+}
+
+func (userChat *UserChat) Delete() error {
+	stmt, err := Client.Prepare(
+		`DELETE FROM userchat WHERE chatid = $1`,
+	)
+	if err != nil {
+		log.Println("Error when trying to prepare statement for deleting userchat: " + err.Error())
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(&userChat.ID)
+	if err != nil {
+		log.Println("Error when trying to delete userchat: " + err.Error())
+		return err
+	}
+
+	log.Println("UserChat deleted")
 
 	return nil
 }

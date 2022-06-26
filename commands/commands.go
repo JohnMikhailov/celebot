@@ -178,7 +178,12 @@ func deleteGroup(b telegram.Bundle) error {
 	chatId := message.Chat.Id
 
 	chat := db.Chat{ID: chatId}
-	return chat.Delete()
+	userChat := db.UserChat{ChatId: chatId}
+
+	chat.Delete()
+	userChat.Delete()
+
+	return nil
 }
 
 func ProcessGroupJoin(b telegram.Bundle) error {

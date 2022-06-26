@@ -2,6 +2,7 @@ package db
 
 import (
 	"strconv"
+	"hash/fnv"
 )
 
 
@@ -54,6 +55,13 @@ type UserChat struct {
 	ID int `json:"id"`
 	UserId int `json:"userid"`
 	ChatId int `json:"chatid"`
+}
+
+func HashUserChat(newUserId, newChatId int) int {
+	userChatIdHash := fnv.New32a()
+	idsum := strconv.Itoa(newUserId) + strconv.Itoa(newChatId)
+	userChatIdHash.Write([]byte(idsum))
+	return int(userChatIdHash.Sum32())
 }
 
 func (friend Friend) GetChatIdStr() string {
