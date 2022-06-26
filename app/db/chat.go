@@ -2,9 +2,14 @@ package db
 
 import "log"
 
+
 func (chat *Chat) Save() error {
-	// do as upsert
-	stmt, err := Client.Prepare("INSERT INTO chat(id, type, title, username, firstname, lastname, ownerid) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id;")
+	stmt, err := Client.Prepare(
+		"INSERT INTO chat(id, type, title, username, firstname, lastname, ownerid) " +
+		"VALUES($1, $2, $3, $4, $5, $6, $7) " +
+		"ON CONFLICT(id) DO UPDATE SET type=$2, title=$3, username=$4, firstname=$5, lastname=$6, ownerid=$7 " +
+		"RETURNING id;",
+	)
 	if err != nil {
 		log.Println("Error when trying to prepare statement for saving chat: " + err.Error())
 		return err
@@ -16,7 +21,8 @@ func (chat *Chat) Save() error {
 		log.Println("Error when trying to save chat: " + err.Error())
 		return err
 	}
-	log.Println("Chat added")
+
+	log.Println("Chat created/updated")
 
 	return nil
 }
@@ -51,11 +57,10 @@ func GetUserOwnedGroups(userId int) (*[]Chat, error) {
 
 func GetChatMembers(chatId int) (*[]User, error) {
 	stmt, err := Client.Prepare(
-		`SELECT user.id, user.name, user.tgusername, user.chatid, user.birthday FROM
-		   user
-		   INNER JOIN userchat ON user.id = userchat.userid
-		   INNER JOIN chat ON chat.id = userchat.chatid
-		   WHERE userchat.chatid = $1;`,
+		"SELECT user.id, user.name, user.tgusername, user.chatid, user.birthday FROM user " +
+		"INNER JOIN userchat ON user.id = userchat.userid " +
+		"INNER JOIN chat ON chat.id = userchat.chatid " +
+		"WHERE userchat.chatid = $1;",
 	)
 	if err != nil {
 		log.Println("Error when trying to prepare statement for getting chat members: " + err.Error())
@@ -84,20 +89,23 @@ func GetChatMembers(chatId int) (*[]User, error) {
 }
 
 func (userChat *UserChat) Save() error {
-	// do as upsert
-	stmt, err := Client.Prepare("INSERT INTO userchat(userid, chatid) VALUES($1, $2) RETURNING id;")
+	stmt, err := Client.Prepare(
+		"INSERT INTO userchat(userid, chatid) " +
+		"VALUES($1, $2) " +
+		"ON CONFLICT(userid, chatid) DO NOTHING;",
+	)
 	if err != nil {
 		log.Println("Error when trying to prepare statement for saving userchat: " + err.Error())
 		return err
 	}
 	defer stmt.Close()
 
-	insertErr := stmt.QueryRow(&userChat.UserId, &userChat.ChatId).Scan(&userChat.ID)
-	if insertErr != nil {
-		log.Println("Error when trying to save userchat: " + err.Error())
-		return err
+	insertErr := stmt.QueryRow(&userChat.UserId, &userChat.ChatId)
+	if insertErr.Err() != nil {
+		log.Println("Error when trying to save userchat: " + insertErr.Err().Error())
+		return insertErr.Err()
 	}
-	log.Println("UserChat added")
+	log.Println("UserChat created/updated")
 
 	return nil
 }
@@ -130,4 +138,25 @@ func GetAllChats(limit, offset int) (*[]Chat, error) {
 	}
 
 	return &chats, nil
+}
+
+func (chat *Chat) Delete() error {
+	stmt, err := Client.Prepare(
+		`DELETE FROM chat WHERE id = $1`,
+	)
+	if err != nil {
+		log.Println("Error when trying to prepare statement for deleting chat: " + err.Error())
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(&chat.ID)
+	if err != nil {
+		log.Println("Error when trying to delete chat: " + err.Error())
+		return err
+	}
+
+	log.Println("Chat deleted")
+
+	return nil
 }

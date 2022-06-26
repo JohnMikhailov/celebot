@@ -11,10 +11,10 @@ type Bundle interface {
 	Message() *message
 	Update() *update
 	SendMessage(text, chatId string, needForceReply bool) *message
-	SendMessageWithKeyboard(chatId string, keyboard ReplyKeyboardMarkup) *message
 	GetChatAdministrators(chatId string) (*[]chatMember, error)
 	GetChatOwner(chatId string) (*chatMember, error)
 	GetChatMember(chatId, userId int) (*chatMember, error)
+	GetMe() (*user, error)
 	Args() []string
 }
 
@@ -48,12 +48,12 @@ func (b *bundle) Args() []string {
 	return []string{}
 }
 
-func (b *bundle) SendMessage(text, chatId string, needForceReply bool) *message {
-	return b.Bot().client.SendMessage(text, chatId, needForceReply)
+func (b *bundle) GetMe() (*user, error) {
+	return b.bot.client.GetMe()
 }
 
-func (b *bundle) SendMessageWithKeyboard(chatId string, keyboard ReplyKeyboardMarkup) *message {
-	return b.Bot().client.SendKeyboard(chatId, keyboard)
+func (b *bundle) SendMessage(text, chatId string, needForceReply bool) *message {
+	return b.Bot().client.SendMessage(text, chatId, needForceReply)
 }
 
 func (b *bundle) GetChatAdministrators(chatId string) (*[]chatMember, error) {

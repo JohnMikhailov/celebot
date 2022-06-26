@@ -18,7 +18,7 @@ func main() {
 
 	bot.AddHandler("/setme", commands.SetBirthdayCommand)
 	bot.AddReplyHandler("Send me your birthday in format: dd.mm, for example 03.01", commands.SetMyBirthdayCommandReply)
-	bot.AddReplyHandler("Hmm, i guess there is a typo, try again", commands.SetMyBirthdayCommandReply)
+	bot.AddReplyHandler("Hmm, i guess there is a typo, try again please", commands.SetMyBirthdayCommandReply)
 
 	bot.SetDefaultHandler(commands.DefaultHandler)
 

@@ -61,7 +61,8 @@ func (bot telegramBot) StartPolling() {
 func (bot telegramBot) handleUpdate(update update) {
 	message := update.Message
 	bundle := newBundle(&bot, &message, &update)
-	if message.IsReply() && message.ReplyToMessage.From.Username == "test_celebot" {
+	if message.IsReply() && message.ReplyToMessage.From.IsBot {
+		// don't check bot name - work in groups is WIP
 		if !bot.handlersRegistry.replyHandlerExist(message.ReplyToMessage.Text) {
 			log.Println("Reply handler not registered! Skiping, original text was: " + message.Text)
 			return
@@ -81,12 +82,20 @@ func (bot telegramBot) handleUpdate(update update) {
 	handler(bundle)
 }
 
+func (bot telegramBot) handleGroupUpdate(update update) {
+	message := update.Message
+	bundle := newBundle(&bot, &message, &update)
+
+	defaultHandler := bot.handlersRegistry.getDefaultHandler()
+	defaultHandler(bundle)
+}
+
 func (bot telegramBot) processUpdateFromPrivateChat(update update) {
 	bot.handleUpdate(update)
 }
 
 func (bot telegramBot) processUpdateFromGroup(update update) {
-	bot.handleUpdate(update)
+	bot.handleGroupUpdate(update)
 }
 
 func (bot telegramBot) processUpdate(update update) {

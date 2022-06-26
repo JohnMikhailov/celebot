@@ -47,7 +47,8 @@ func create_tables(client *sql.DB) error {
 	create_user_chat_table_sql := `CREATE TABLE IF NOT EXISTS userchat (
 		id INTEGER PRIMARY KEY,
 		userid INTEGER,
-		chatid INTEGER
+		chatid INTEGER,
+		UNIQUE(userid, chatid)
 	);`
 
 	for _, table := range []string{

@@ -1,7 +1,8 @@
 package db
 
-
-import "strconv"
+import (
+	"strconv"
+)
 
 
 type User struct {
@@ -40,7 +41,7 @@ type Friend struct {
 }
 
 type Chat struct {
-	ID int `json:"id"`
+	ID int `json:"id"`  // id will be taken from telegram
 	Type string `json:"type"`
 	Title string `json:"title"`
 	Username string `json:"username"`

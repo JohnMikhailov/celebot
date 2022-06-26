@@ -26,11 +26,15 @@ func SetMyBirthdayCommandReply(b telegram.Bundle) error {
 		return nil
 	}
 
-	user := db.User{ID: message.From.Id}
-	user.GetById(false)
+	user := db.User{
+		ID:         message.From.Id,
+		Name:       message.From.FirstName,
+		TGusername: message.From.Username,
+		ChatId:     message.Chat.Id,
+		Birthday:   message.Text,
+	}
 
-	user.Birthday = message.Text
-	user.Update()
+	user.Save()
 
 	b.SendMessage(message.GetChatIdStr(), "Cool, i've saved your birthday!", false)
 
@@ -72,14 +76,14 @@ func GetBirthDay(b telegram.Bundle) error {
 	message := b.Message()
 
 	user := db.User{ID: message.From.Id}
-	err := user.GetById(false)
+	err := user.Get()
 
 	if err != nil {
 		b.SendMessage(message.GetChatIdStr(), "Hmm, i can't find your birthday... /help", false)
 		return err
 	}
 
-	b.SendMessage(message.GetChatIdStr(), "Your birthday is: "+user.Birthday, false)
+	b.SendMessage(message.GetChatIdStr(), "Your birthday is " + user.Birthday, false)
 
 	return nil
 }
@@ -92,13 +96,14 @@ func StartCommand(b telegram.Bundle) error {
 		Name:       message.From.FirstName,
 		TGusername: message.From.Username,
 		ChatId:     message.Chat.Id,
+		Birthday: "not specified",
 	}
 
 	user.Save()
 
 	b.SendMessage(
 		message.GetChatIdStr(),
-		"Hi, i'm celebot, i will remind you about your frined's birthdays! /help",
+		"Hi, i'm celebot, i will remind you about your friend's birthdays! /help",
 		false,
 	)
 
@@ -128,12 +133,24 @@ func isBotAddedToGroupEvent(b telegram.Bundle) bool {
 	if message.NewChatMembers == nil {
 		return false
 	}
+
+	me, err := b.GetMe()
+	botname := "celebratorbot"
+	if err == nil {
+		botname = me.Username
+	}
+
 	for _, mem := range message.NewChatMembers {
-		if mem.IsBot && mem.Username == "test_celebot" {
+		if mem.IsBot && mem.Username == botname {
 			return true
 		}
 	}
 	return false
+}
+
+func isBotKickedFromGroupEvent(b telegram.Bundle) bool {
+	message := b.Message()
+	return message.HasLeftChatMember() && message.LeftChatMember.IsBot && message.LeftChatMember.Username == "test_celebot"
 }
 
 func saveGroup(b telegram.Bundle) {
@@ -162,16 +179,37 @@ func saveGroup(b telegram.Bundle) {
 	}
 }
 
+func deleteGroup(b telegram.Bundle) error {
+	message := b.Message()
+	chatId := message.Chat.Id
+
+	chat := db.Chat{ID: chatId}
+	return chat.Delete()
+}
+
 func ProcessGroupJoin(b telegram.Bundle) error {
 	saveGroup(b)
 
 	return nil
 }
 
+func ProcessGroupKick(b telegram.Bundle) error {
+	deleteGroup(b)
+
+	return nil
+}
+ 
 func DefaultHandler(b telegram.Bundle) error {
 	if isBotAddedToGroupEvent(b) {
 		return ProcessGroupJoin(b)
 	}
+	if isBotKickedFromGroupEvent(b) {
+		return ProcessGroupKick(b)
+	}
+	if b.Message().Chat.Type == "group" {
+		return nil
+	}
+
 	showHelpMessage(b)
 	return nil
 }
@@ -190,18 +228,31 @@ func ShowChatBirthdays(b telegram.Bundle) error {
 	}
 
 	chatsBirthdays := ""
+	isErrorOccured := false
 	for _, chat := range *chats {
-		chatsBirthdays += "For group " + chat.Title + " found:" +"\n"
+		chatsBirthdays += "For group " + chat.Title
 
 		chatMembers, err := db.GetChatMembers(chat.ID)
 		if err != nil {
-			b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
-			return nil
+			isErrorOccured = true
+			continue
 		}
+
+		if len(*chatMembers) == 0 {
+			chatsBirthdays += " no birthdays found"
+			continue
+		}
+
+		chatsBirthdays += " found:" +"\n"
 
 		for _, chatMember := range *chatMembers {
 			chatsBirthdays += chatMember.Name + " " + chatMember.GetTGUserName() + " " + chatMember.Birthday + "\n"
 		}
+	}
+
+	if isErrorOccured {
+		b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
+		return err
 	}
 
 	b.SendMessage(message.GetChatIdStr(), chatsBirthdays, false)

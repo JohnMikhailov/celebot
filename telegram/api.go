@@ -102,52 +102,6 @@ func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
 	return &res
 }
 
-func (client apiClient) SendKeyboard(chatId string, keyboard ReplyKeyboardMarkup) *message {
-	// add url query schema https://core.telegram.org/bots/api#sendmessage
-	// TODO use url module
-	// TODO add user-agent header
-	// TODO use model for body
-	res := message {}
-	errorRes := errorResponse{}
-	url := client.urlHead + client.token + "/sendMessage"
-
-	body := map[string]string{"chat_id": chatId}
-	keyboard_json, err := json.Marshal(keyboard)
-	if err != nil {
-		log.Fatal(err)
-	}
-	body["reply_markup"] = string(keyboard_json)
-
-	json_data, err := json.Marshal(body)
-
-	if err != nil {
-        log.Fatal(err)
-    }
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(json_data))
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	defer resp.Body.Close()
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	bodyString := string(bodyBytes)
-
-	if resp.StatusCode == http.StatusOK {
-		if err != nil {
-			log.Fatal(err)
-		}
-		json.Unmarshal([]byte(bodyString), &res)
-	} else {
-		json.Unmarshal([]byte(bodyString), &errorRes)
-		log.Println(errorRes.Description)
-	}
-
-	return &res
-}
-
 func (client apiClient) GetChatAdministrators(chatId string) (*[]chatMember, error) {
 	// TODO use url module
 	// TODO add user-agent header
@@ -216,22 +170,57 @@ func (client apiClient) GetChatMember(chatId, userId string) (*chatMember, error
 		return nil, err
 	}
 
-	res := chatMember{}
+	res := singleChatMemberResponse{}
 	errorRes := errorResponse{}
 
 	bodyString := string(bodyBytes)
-	log.Println(bodyString)
 
 	if resp.StatusCode == http.StatusOK {
 		if err != nil {
+
 			return nil, err
 		}
 		json.Unmarshal([]byte(bodyString), &res)
-		log.Println(res)
 	} else {
 		json.Unmarshal([]byte(bodyString), &errorRes)
 		log.Println(errorRes.Description)
 	}
 
-	return &res, nil
+	return &res.Result, nil
+}
+
+func (client apiClient) GetMe() (*user, error) {
+	// TODO use url module
+	// TODO add user-agent header
+	// TODO use model for body
+	url := client.urlHead + client.token + "/getMe"
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		log.Println("Error getting info about bot: " + err.Error())
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Error forming response from : " + err.Error())
+		return nil, err
+	}
+
+	res := getMeReponse{}
+	errorRes := errorResponse{}
+
+	bodyString := string(bodyBytes)
+
+	if resp.StatusCode == http.StatusOK {
+		json.Unmarshal([]byte(bodyString), &res)
+	} else {
+		json.Unmarshal([]byte(bodyString), &errorRes)
+		log.Println(errorRes.Description)
+	}
+
+	return &res.Result, nil
 }

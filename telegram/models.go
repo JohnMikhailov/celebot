@@ -37,10 +37,9 @@ type chatMemberResponse struct {
 	Result []chatMember `json:"result"`
 }
 
-type forceReply struct {
-	ForceReply bool `json:"force_reply"`
-	InputFieldPlaceHolder string `json:"input_field_placeholder"`
-	Selective bool `json:"selective"`
+type singleChatMemberResponse struct {
+	Ok bool `json:"ok"`
+	Result chatMember `json:"result"`
 }
 
 type replyToMessage struct {
@@ -59,10 +58,15 @@ type message struct {
 	Text string  `json:"text"`
 	ReplyToMessage replyToMessage `json:"reply_to_message"`
 	NewChatMembers []user `json:"new_chat_members"`
+	LeftChatMember user `json:"left_chat_member"`
 }
 
 func (m *message) IsReply() bool {
 	return reflect.ValueOf(m).Elem().FieldByName("ReplyToMessage") != reflect.Value{}
+}
+
+func (m *message) HasLeftChatMember() bool {
+	return reflect.ValueOf(m).Elem().FieldByName("LeftChatMember") != reflect.Value{}
 }
 
 type update struct {
@@ -76,6 +80,11 @@ func (update *update) isFromGroup() bool {
 
 func (update *update) isFromPrivateChat() bool {
 	return update.Message.Chat.Type == "private" // todo use enum!
+}
+
+type getMeReponse struct {
+	Ok bool `json:"ok"`
+	Result user `json:"result"`
 }
 
 type updateResponse struct {
@@ -112,20 +121,4 @@ func (message message) getCommand() string {
 		return parts[0]
 	}
 	return ""
-}
-
-type KeyboardButton struct {
-	// full description https://core.telegram.org/bots/api#keyboardbutton
-	Text string `json:"text"`
-}
-
-type ReplyKeyboardMarkup struct {
-	Keyboard [][]KeyboardButton `json:"keyboard"`
-	OneTimeKeyboard bool `json:"one_time_keyboard"`
-	Selective bool `json:"selective"`
-}
-
-type ReplyKeyboardRemove struct {
-	RemoveKeyboard bool `json:"remove_keyboard"`
-	Selective bool `json:"selective"`
 }

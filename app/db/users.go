@@ -1,27 +1,46 @@
 package db
 
-
 import (
-    "log"
-    "fmt"
+	"fmt"
+	"log"
 )
 
-
 func (user *User) Save() error {
-    // do as upsert
-	stmt, err := Client.Prepare("INSERT INTO user(id, name, tgusername, chatid) VALUES($1, $2, $3, $4) RETURNING id;")
+	stmt, err := Client.Prepare(
+        "INSERT INTO user(id, name, tgusername, chatid, birthday) " +
+        "VALUES($1, $2, $3, $4, $5) " +
+        "ON CONFLICT(id) DO UPDATE SET name=$2, tgusername=$3, chatid=$4, birthday=$5 " +
+        "RETURNING id;",
+    )
     if err != nil {
-        log.Println("Error when trying to prepare statement for saving user")
+        log.Println("Error when trying to prepare statement for saving user: " + err.Error())
         return err
     }
     defer stmt.Close()
 
-    insertErr := stmt.QueryRow(user.ID, user.Name, user.TGusername, user.ChatId).Scan(&user.ID)
+    insertErr := stmt.QueryRow(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday).Scan(&user.ID)
     if insertErr != nil {
-        log.Println("Error when trying to save user")
+        log.Println("Error when trying to save user: " + err.Error())
         return err
     }
-    log.Println("User added")
+    log.Println("User created/updated")
+
+    return nil
+}
+
+func (user *User) Get() error {
+    stmt, err := Client.Prepare("SELECT id, name, tgusername, chatid, birthday FROM user WHERE id=$1;")
+    if err != nil {
+        log.Println("Error when trying to prepare statement for getting user by id: " + err.Error())
+        return err
+    }
+    defer stmt.Close()
+
+    result := stmt.QueryRow(&user.ID)
+    if err := result.Scan(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday); err != nil {
+        log.Println("Error when trying to get User by ID: " + err.Error())
+        return err
+    }
 
     return nil
 }
@@ -34,7 +53,7 @@ func (user *User) GetById(fetchFriends bool) error {
     }
     defer stmt.Close()
 
-    result := stmt.QueryRow(user.ID)
+    result := stmt.QueryRow(&user.ID)
 
 	if err := result.Scan(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday); err != nil {
         log.Println("Error when trying to get User by ID")
@@ -48,7 +67,7 @@ func (user *User) GetById(fetchFriends bool) error {
 			return err
 		}
 
-		results, err := stmt.Query(user.ID)
+		results, err := stmt.Query(&user.ID)
 		if err != nil {
 			log.Println("Error when fetching friends for user")
 			return err
@@ -70,7 +89,7 @@ func (user *User) GetById(fetchFriends bool) error {
 
 func (user *User) GetFriendsByBirthDate(birthDay string, limit, offset int) error {
     stmt, err := Client.Prepare(
-        "SELECT id, name, birthday, userid, chatid FROM friend WHERE birthday like $1 or birthday like $2 LIMIT $3 OFFSET $4;",
+        "SELECT id, name, birthday, userid, chatid FROM friend WHERE birthday LIKE $1 OR birthday LIKE $2 LIMIT $3 OFFSET $4;",
     )
     if err != nil {
         log.Println("Error when trying to prepare statement for fetching friends for user")
@@ -96,28 +115,10 @@ func (user *User) GetFriendsByBirthDate(birthDay string, limit, offset int) erro
     return nil
 }
 
-func (user *User) Update() error {
-    stmt, err := Client.Prepare(
-        "UPDATE user SET name=$1, tgusername=$2, chatid=$3, birthday=$4 where id=$5",
-    )
-    if err != nil {
-        log.Println("Error when trying to prepare statement for updating user")
-        return err
-    }
-    _, err = stmt.Exec(user.Name, user.TGusername, user.ChatId, user.Birthday, user.ID)
-    if err != nil {
-        log.Println("Error when updating user")
-        return err
-    }
-
-    return nil
-}
-
 func (friend *Friend) Save() error {
-    // do as upsert
 	stmt, err := Client.Prepare("INSERT INTO friend(name, birthday, userid, chatid) VALUES($1, $2, $3, $4) RETURNING id;")
     if err != nil {
-        log.Println("Error when trying to prepare statement")
+        log.Println("Error when trying to prepare statement: " + err.Error())
         return err
     }
     defer stmt.Close()
