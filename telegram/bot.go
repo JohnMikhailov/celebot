@@ -25,3 +25,13 @@ func (bot telegramBot) AddReplyHandler(replyText string, handler handlerType) {
 func (bot telegramBot) SetDefaultHandler(handler handlerType) {
 	bot.handlersRegistry.addDefaultHandler(handler)
 }
+
+func (bot telegramBot) GetName() string {
+	me, err := bot.client.GetMe()
+	botname := "celebratorbot"
+	if err == nil {
+		botname = me.Username
+	}
+
+	return botname
+}

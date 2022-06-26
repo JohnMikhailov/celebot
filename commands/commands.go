@@ -134,14 +134,8 @@ func isBotAddedToGroupEvent(b telegram.Bundle) bool {
 		return false
 	}
 
-	me, err := b.GetMe()
-	botname := "celebratorbot"
-	if err == nil {
-		botname = me.Username
-	}
-
 	for _, mem := range message.NewChatMembers {
-		if mem.IsBot && mem.Username == botname {
+		if mem.IsBot && mem.Username == b.Bot().GetName() {
 			return true
 		}
 	}
@@ -150,7 +144,7 @@ func isBotAddedToGroupEvent(b telegram.Bundle) bool {
 
 func isBotKickedFromGroupEvent(b telegram.Bundle) bool {
 	message := b.Message()
-	return message.HasLeftChatMember() && message.LeftChatMember.IsBot && message.LeftChatMember.Username == "test_celebot"
+	return message.HasLeftChatMember() && message.LeftChatMember.IsBot && message.LeftChatMember.Username == b.Bot().GetName()
 }
 
 func saveGroup(b telegram.Bundle) {
@@ -239,11 +233,11 @@ func ShowChatBirthdays(b telegram.Bundle) error {
 		}
 
 		if len(*chatMembers) == 0 {
-			chatsBirthdays += " no birthdays found"
+			chatsBirthdays += " no birthdays found\n"
 			continue
 		}
 
-		chatsBirthdays += " found:" +"\n"
+		chatsBirthdays += " found:\n"
 
 		for _, chatMember := range *chatMembers {
 			chatsBirthdays += chatMember.Name + " " + chatMember.GetTGUserName() + " " + chatMember.Birthday + "\n"
@@ -267,39 +261,34 @@ func SyncGroupsCommand(b telegram.Bundle) error {
 	limit, offset := 10, 0
 
 	chats, err := db.GetAllChats(limit, offset)
+	errMessage := "Ooops, there is a problem occured, i'm working on it..."
 	if err != nil {
-		b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
+		b.SendMessage(message.GetChatIdStr(), errMessage, false)
 		return err
 	}
 
-	isErrorOccured := false
 	groupsInCommon := []string{}
 	for _, chat := range *chats {
 		member, err := b.GetChatMember(chat.ID, userId)
 		if err != nil {
-			isErrorOccured = true
-			continue
+			b.SendMessage(message.GetChatIdStr(), errMessage, false)
+			return err
 		}
 
 		userChat := db.UserChat{UserId: member.User.Id, ChatId: chat.ID}
 		err = userChat.Save()
 		if err != nil {
-			isErrorOccured = true
-			continue
+			b.SendMessage(message.GetChatIdStr(), errMessage, false)
+			return err
 		}
 
 		groupsInCommon = append(groupsInCommon, chat.Title)
 	}
 
-	if isErrorOccured {
-		b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
-		return err
-	}
-
 	if len(groupsInCommon) == 0 {
 		b.SendMessage(
 			message.GetChatIdStr(),
-			"We have no incommon groups! /help",
+			"We have no groups incommon! /help",
 			false,
 		)
 		return nil
@@ -308,7 +297,7 @@ func SyncGroupsCommand(b telegram.Bundle) error {
 	foundGroups := strings.Join(groupsInCommon[:], "\n")
 	b.SendMessage(
 		message.GetChatIdStr(),
-		"Cool! We have incommon groups: " + "\n" + foundGroups + "\n",
+		"Cool! We have groups incommon: " + "\n" + foundGroups + "\n",
 		false,
 	)
 

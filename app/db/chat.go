@@ -79,7 +79,7 @@ func GetChatMembers(chatId int) (*[]User, error) {
 		user := User{}
 		err := results.Scan(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday)
 		if err != nil {
-			log.Println("Error when fetching chat for user")
+			log.Println("Error when fetching chat for user: " + err.Error())
 			continue
 		}
 		users = append(users, user)
