@@ -199,13 +199,13 @@ func ProcessGroupKick(b telegram.Bundle) error {
 }
  
 func DefaultHandler(b telegram.Bundle) error {
-	if isBotAddedToGroupEvent(b) {
-		return ProcessGroupJoin(b)
-	}
-	if isBotKickedFromGroupEvent(b) {
-		return ProcessGroupKick(b)
-	}
-	if b.Message().Chat.Type == "group" {
+	if b.IsUpdateFromGroup() {
+		if isBotAddedToGroupEvent(b) {
+			return ProcessGroupJoin(b)
+		}
+		if isBotKickedFromGroupEvent(b) {
+			return ProcessGroupKick(b)
+		}
 		return nil
 	}
 

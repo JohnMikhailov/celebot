@@ -10,6 +10,8 @@ type Bundle interface {
 	Bot() *telegramBot
 	Message() *message
 	Update() *update
+	IsUpdateFromGroup() bool
+	IsUpdateFromPrivateChat() bool
 	SendMessage(text, chatId string, needForceReply bool) *message
 	GetChatAdministrators(chatId string) (*[]chatMember, error)
 	GetChatOwner(chatId string) (*chatMember, error)
@@ -34,6 +36,14 @@ func (b *bundle) Message() *message {
 
 func (b *bundle) Update() *update {
 	return b.update
+}
+
+func (b *bundle) IsUpdateFromGroup() bool {
+	return b.update.isFromGroup()
+}
+
+func (b *bundle) IsUpdateFromPrivateChat() bool {
+	return b.update.isFromPrivateChat()
 }
 
 func (b *bundle) Bot() *telegramBot {
