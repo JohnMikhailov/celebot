@@ -197,7 +197,7 @@ func ProcessGroupKick(b telegram.Bundle) error {
 
 	return nil
 }
- 
+
 func DefaultHandler(b telegram.Bundle) error {
 	if b.IsUpdateFromGroup() {
 		if isBotAddedToGroupEvent(b) {
