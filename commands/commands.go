@@ -5,37 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/meehighlov/celebot/app"
 	"github.com/meehighlov/celebot/app/db"
 	"github.com/meehighlov/celebot/telegram"
 )
 
-func getButtonsRow(texts []string) []telegram.KeyboardButton {
-	buttons := make([]telegram.KeyboardButton, 3)
-	for _, month := range texts {
-		button := telegram.KeyboardButton{Text: month}
-		buttons = append(buttons, button)
-	}
-	return buttons
-}
-
-func getKeyboardWithMonths() [][]telegram.KeyboardButton {
-	// вынести создание клавиатуры в либу
-	return [][]telegram.KeyboardButton{
-		getButtonsRow([]string{"jan", "feb", "mar", "apr"}),
-		getButtonsRow([]string{"may", "jun", "jul", "aug"}),
-		getButtonsRow([]string{"sep", "oct", "nov", "dec"}),
-	}
-}
-
-func getKeyboardWithDigits() [][]telegram.KeyboardButton {
-	// вынести создание клавиатуры в либу
-	return [][]telegram.KeyboardButton{
-		getButtonsRow([]string{"0", "1", "2", "3"}),
-		getButtonsRow([]string{"4", "5", "6", "7"}),
-		getButtonsRow([]string{"8", "9", "."}),
-	}
-}
 
 func SetBirthdayCommand(b telegram.Bundle) error {
 	message := b.Message()
@@ -48,7 +21,7 @@ func SetBirthdayCommand(b telegram.Bundle) error {
 func SetMyBirthdayCommandReply(b telegram.Bundle) error {
 	message := b.Message()
 
-	if !isBirthdatyCorrect(b.Message().Text) {
+	if !isBirthdatyCorrect(message.Text) {
 		b.SendMessage(message.GetChatIdStr(), "Hmm, i guess there is a typo, try again please", true)
 		return nil
 	}
@@ -77,14 +50,26 @@ func isBirthdatyCorrect(birtday string) bool {
 		}
 	}
 
+	day, _ := strconv.Atoi(parts[0])
+	if !(day >= 1 && day <= 31) {
+		return false
+	}
+
+	month, _ := strconv.Atoi(parts[1])
+	if !(month >= 1 && month <= 12) {
+		return false
+	}
+
+	if day >= 30 && month == 2 {
+		// TODO add same checks for other months
+		return false
+	}
+
 	return true
 }
 
 func GetBirthDay(b telegram.Bundle) error {
 	message := b.Message()
-	if !app.IsAllowedUser(message.From.Username) {
-		return nil
-	}
 
 	user := db.User{ID: message.From.Id}
 	err := user.GetById(false)
@@ -94,16 +79,13 @@ func GetBirthDay(b telegram.Bundle) error {
 		return err
 	}
 
-	b.SendMessage(message.GetChatIdStr(), "Your birthday is: " + user.Birthday, false)
+	b.SendMessage(message.GetChatIdStr(), "Your birthday is: "+user.Birthday, false)
 
 	return nil
 }
 
 func StartCommand(b telegram.Bundle) error {
 	message := b.Message()
-	if !app.IsAllowedUser(message.From.Username) {
-		return nil
-	}
 
 	user := db.User{
 		ID:         message.From.Id,
@@ -117,7 +99,7 @@ func StartCommand(b telegram.Bundle) error {
 	b.SendMessage(
 		message.GetChatIdStr(),
 		"Hi, i'm celebot, i will remind you about your frined's birthdays! /help",
-		true,
+		false,
 	)
 
 	return nil
@@ -131,8 +113,7 @@ func showHelpMessage(b telegram.Bundle) {
 			"/addfriend - add your friend's birthday"+"\n"+
 			"/mybirthday - show your birthday"+"\n"+
 			"/chatbirthdays - show birthdays in chats you own"+"\n"+
-			"/hideme - hide your birthday from chat owners"+"\n"+
-			"/showme - allow chat owners see yor birthday",
+			"/syncgroups - save groups which you and celebot are participated in",
 		false,
 	)
 }
@@ -197,7 +178,7 @@ func DefaultHandler(b telegram.Bundle) error {
 
 func ShowChatBirthdays(b telegram.Bundle) error {
 	message := b.Message()
-	chats, err := db.GetUserOwnedChats(message.From.Id)
+	chats, err := db.GetUserOwnedGroups(message.From.Id)
 	if err != nil {
 		b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
 		return err
@@ -210,12 +191,12 @@ func ShowChatBirthdays(b telegram.Bundle) error {
 
 	chatsBirthdays := ""
 	for _, chat := range *chats {
-		chatsBirthdays += "For chat " + chat.Title + "\n"
+		chatsBirthdays += "For group " + chat.Title + " found:" +"\n"
 
 		chatMembers, err := db.GetChatMembers(chat.ID)
 		if err != nil {
-			log.Panicln("oops")
-			continue
+			b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
+			return nil
 		}
 
 		for _, chatMember := range *chatMembers {
@@ -224,6 +205,61 @@ func ShowChatBirthdays(b telegram.Bundle) error {
 	}
 
 	b.SendMessage(message.GetChatIdStr(), chatsBirthdays, false)
+
+	return nil
+}
+
+func SyncGroupsCommand(b telegram.Bundle) error {
+	message := b.Message()
+	userId := message.From.Id
+
+	limit, offset := 10, 0
+
+	chats, err := db.GetAllChats(limit, offset)
+	if err != nil {
+		b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
+		return err
+	}
+
+	isErrorOccured := false
+	groupsInCommon := []string{}
+	for _, chat := range *chats {
+		member, err := b.GetChatMember(chat.ID, userId)
+		if err != nil {
+			isErrorOccured = true
+			continue
+		}
+
+		userChat := db.UserChat{UserId: member.User.Id, ChatId: chat.ID}
+		err = userChat.Save()
+		if err != nil {
+			isErrorOccured = true
+			continue
+		}
+
+		groupsInCommon = append(groupsInCommon, chat.Title)
+	}
+
+	if isErrorOccured {
+		b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
+		return err
+	}
+
+	if len(groupsInCommon) == 0 {
+		b.SendMessage(
+			message.GetChatIdStr(),
+			"We have no incommon groups! /help",
+			false,
+		)
+		return nil
+	}
+
+	foundGroups := strings.Join(groupsInCommon[:], "\n")
+	b.SendMessage(
+		message.GetChatIdStr(),
+		"Cool! We have incommon groups: " + "\n" + foundGroups + "\n",
+		false,
+	)
 
 	return nil
 }

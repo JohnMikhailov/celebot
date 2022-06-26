@@ -1,7 +1,9 @@
 package telegram
 
-
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 
 type Bundle interface {
@@ -12,6 +14,7 @@ type Bundle interface {
 	SendMessageWithKeyboard(chatId string, keyboard ReplyKeyboardMarkup) *message
 	GetChatAdministrators(chatId string) (*[]chatMember, error)
 	GetChatOwner(chatId string) (*chatMember, error)
+	GetChatMember(chatId, userId int) (*chatMember, error)
 	Args() []string
 }
 
@@ -70,4 +73,11 @@ func (b *bundle) GetChatOwner(chatId string) (*chatMember, error) {
 	}
 
 	return nil, nil
+}
+
+func (b *bundle) GetChatMember(chatId, userId int) (*chatMember, error) {
+	chatIdStr := strconv.Itoa(chatId)
+	userIdStr := strconv.Itoa(userId)
+
+	return b.bot.client.GetChatMember(chatIdStr, userIdStr)
 }

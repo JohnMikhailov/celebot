@@ -177,7 +177,6 @@ func (client apiClient) GetChatAdministrators(chatId string) (*[]chatMember, err
 	errorRes := errorResponse{}
 
 	bodyString := string(bodyBytes)
-	json.Unmarshal([]byte(bodyString), &res)
 
 	if resp.StatusCode == http.StatusOK {
 		if err != nil {
@@ -190,4 +189,49 @@ func (client apiClient) GetChatAdministrators(chatId string) (*[]chatMember, err
 	}
 
 	return &res.Result, nil
+}
+
+func (client apiClient) GetChatMember(chatId, userId string) (*chatMember, error) {
+	// TODO use url module
+	// TODO add user-agent header
+	// TODO use model for body
+	url := client.urlHead + client.token + "/getChatMember"
+
+	body := map[string]string{"chat_id": chatId, "user_id": userId}
+	json_data, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(json_data))
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	res := chatMember{}
+	errorRes := errorResponse{}
+
+	bodyString := string(bodyBytes)
+	log.Println(bodyString)
+
+	if resp.StatusCode == http.StatusOK {
+		if err != nil {
+			return nil, err
+		}
+		json.Unmarshal([]byte(bodyString), &res)
+		log.Println(res)
+	} else {
+		json.Unmarshal([]byte(bodyString), &errorRes)
+		log.Println(errorRes.Description)
+	}
+
+	return &res, nil
 }

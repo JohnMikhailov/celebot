@@ -12,7 +12,6 @@ type User struct {
 	TGusername string `json:"tgusername"`
 	ChatId int `json:"chatid"`  // chatId - id of chat with user, bot uses it to send notification
 	Birthday string `json:"birthday"`
-	ShowToChatOwner int `json:"showtochatowner"`
 
 	Friends []Friend
 }
@@ -51,6 +50,7 @@ type Chat struct {
 }
 
 type UserChat struct {
+	ID int `json:"id"`
 	UserId int `json:"userid"`
 	ChatId int `json:"chatid"`
 }

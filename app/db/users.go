@@ -8,6 +8,7 @@ import (
 
 
 func (user *User) Save() error {
+    // do as upsert
 	stmt, err := Client.Prepare("INSERT INTO user(id, name, tgusername, chatid) VALUES($1, $2, $3, $4) RETURNING id;")
     if err != nil {
         log.Println("Error when trying to prepare statement for saving user")
@@ -113,6 +114,7 @@ func (user *User) Update() error {
 }
 
 func (friend *Friend) Save() error {
+    // do as upsert
 	stmt, err := Client.Prepare("INSERT INTO friend(name, birthday, userid, chatid) VALUES($1, $2, $3, $4) RETURNING id;")
     if err != nil {
         log.Println("Error when trying to prepare statement")

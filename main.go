@@ -12,12 +12,13 @@ func main() {
 	bot := telegram.NewBot(token)
 	bot.AddHandler("/start", commands.StartCommand)
 	bot.AddHandler("/mybirthday", commands.GetBirthDay)
-	// bot.AddHandler("/chatbirthdays", commands.)
+	bot.AddHandler("/syncgroups", commands.SyncGroupsCommand)
+	bot.AddHandler("/chatbirthdays", commands.ShowChatBirthdays)
 	bot.AddHandler("/help", commands.HelpCommand)
 
-	bot.AddHandler("/setbirthday", commands.SetBirthdayCommand)
-	bot.AddReplyHandler("type your birthday (dd.mm)", commands.SetMyBirthdayCommandReply)
-	bot.AddReplyHandler("hmm, i guess there is a typo, try again", commands.SetMyBirthdayCommandReply)
+	bot.AddHandler("/setme", commands.SetBirthdayCommand)
+	bot.AddReplyHandler("Send me your birthday in format: dd.mm, for example 03.01", commands.SetMyBirthdayCommandReply)
+	bot.AddReplyHandler("Hmm, i guess there is a typo, try again", commands.SetMyBirthdayCommandReply)
 
 	bot.SetDefaultHandler(commands.DefaultHandler)
 
