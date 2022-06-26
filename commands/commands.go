@@ -37,10 +37,10 @@ func getKeyboardWithDigits() [][]telegram.KeyboardButton {
 	}
 }
 
-func SetMyBirthdayCommand(b telegram.Bundle) error {
+func SetBirthdayCommand(b telegram.Bundle) error {
 	message := b.Message()
 
-	b.SendMessage(message.GetChatIdStr(), "type your birthday (dd.mm)", true)
+	b.SendMessage(message.GetChatIdStr(), "Send me your birthday in format: dd.mm, for example 03.01", true)
 
 	return nil
 }
@@ -49,7 +49,7 @@ func SetMyBirthdayCommandReply(b telegram.Bundle) error {
 	message := b.Message()
 
 	if !isBirthdatyCorrect(b.Message().Text) {
-		b.SendMessage(message.GetChatIdStr(), "hmm, i guess there is a typo, try again", true)
+		b.SendMessage(message.GetChatIdStr(), "Hmm, i guess there is a typo, try again please", true)
 		return nil
 	}
 
@@ -90,20 +90,14 @@ func GetBirthDay(b telegram.Bundle) error {
 	err := user.GetById(false)
 
 	if err != nil {
-		b.SendMessage(message.GetChatIdStr(), "Ooops! ", false)
+		b.SendMessage(message.GetChatIdStr(), "Hmm, i can't find your birthday... /help", false)
 		return err
 	}
 
-	b.SendMessage(message.GetChatIdStr(), "Your birthday is: "+user.Birthday, false)
+	b.SendMessage(message.GetChatIdStr(), "Your birthday is: " + user.Birthday, false)
 
 	return nil
 }
-
-func isUserInSelectedGroup(b telegram.Bundle) bool {
-	return true
-}
-
-func saveUserChat(b telegram.Bundle) {}
 
 func StartCommand(b telegram.Bundle) error {
 	message := b.Message()
@@ -120,52 +114,38 @@ func StartCommand(b telegram.Bundle) error {
 
 	user.Save()
 
-	if isUserInSelectedGroup(b) {
-		saveUserChat(b)
-	}
-
 	b.SendMessage(
 		message.GetChatIdStr(),
-		"Hello, i'm celebot! Tell me about your friends birthdays and i will remind you about it ;)",
+		"Hi, i'm celebot, i will remind you about your frined's birthdays! /help",
 		true,
 	)
 
 	return nil
 }
 
-func HelpCommand(b telegram.Bundle) error {
+func showHelpMessage(b telegram.Bundle) {
 	b.SendMessage(
 		b.Message().GetChatIdStr(),
-		"I will remind you about birthdays! Here is what i can do..."+"\n\n"+
-			"/addme - add your birth day"+"\n"+
+		"That's what i can do"+"\n\n"+
+			"/setme - set your birthday"+"\n"+
 			"/addfriend - add your friend's birthday"+"\n"+
-			"/mybirthday - show your birthday",
+			"/mybirthday - show your birthday"+"\n"+
+			"/chatbirthdays - show birthdays in chats you own"+"\n"+
+			"/hideme - hide your birthday from chat owners"+"\n"+
+			"/showme - allow chat owners see yor birthday",
 		false,
 	)
-
-	return nil
 }
 
-func isHenry(username string) bool {
-	return true
-}
-
-func showBirthdaysFromHenrysClub(b telegram.Bundle) {
-
-}
-
-func ListFromHenrysClub(b telegram.Bundle) error {
-	message := b.Message()
-	if isHenry(message.From.Username) {
-		showBirthdaysFromHenrysClub(b)
-	}
+func HelpCommand(b telegram.Bundle) error {
+	showHelpMessage(b)
 	return nil
 }
 
 func isBotAddedToGroupEvent(b telegram.Bundle) bool {
 	message := b.Message()
 	if message.NewChatMembers == nil {
-		return false	
+		return false
 	}
 	for _, mem := range message.NewChatMembers {
 		if mem.IsBot && mem.Username == "test_celebot" {
@@ -186,13 +166,13 @@ func saveGroup(b telegram.Bundle) {
 	}
 
 	newChat := db.Chat{
-		ID: chat.Id,
-		Type: chat.Type,
-		Title: chat.Title,
-		Username: chat.Username,
+		ID:        chat.Id,
+		Type:      chat.Type,
+		Title:     chat.Title,
+		Username:  chat.Username,
 		FirstName: chat.FirstName,
-		LastName: chat.LastName,
-		OwnerId: owner.User.Id,
+		LastName:  chat.LastName,
+		OwnerId:   owner.User.Id,
 	}
 
 	err = newChat.Save()
@@ -211,5 +191,39 @@ func DefaultHandler(b telegram.Bundle) error {
 	if isBotAddedToGroupEvent(b) {
 		return ProcessGroupJoin(b)
 	}
+	showHelpMessage(b)
+	return nil
+}
+
+func ShowChatBirthdays(b telegram.Bundle) error {
+	message := b.Message()
+	chats, err := db.GetUserOwnedChats(message.From.Id)
+	if err != nil {
+		b.SendMessage(message.GetChatIdStr(), "Ooops, there is a problem occured, i'm working on it...", false)
+		return err
+	}
+
+	if len(*chats) == 0 {
+		b.SendMessage(message.GetChatIdStr(), "I didn't find any chats you own where i was added", false)
+		return nil
+	}
+
+	chatsBirthdays := ""
+	for _, chat := range *chats {
+		chatsBirthdays += "For chat " + chat.Title + "\n"
+
+		chatMembers, err := db.GetChatMembers(chat.ID)
+		if err != nil {
+			log.Panicln("oops")
+			continue
+		}
+
+		for _, chatMember := range *chatMembers {
+			chatsBirthdays += chatMember.Name + " " + chatMember.GetTGUserName() + " " + chatMember.Birthday + "\n"
+		}
+	}
+
+	b.SendMessage(message.GetChatIdStr(), chatsBirthdays, false)
+
 	return nil
 }

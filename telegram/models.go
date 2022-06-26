@@ -15,7 +15,6 @@ type chat struct {
 	Username string `json:"username"`
 	FirstName string `json:"firstname"`
 	LastName string `json:"lastname"`
-	OwnerId string
 }
 
 type user struct {
