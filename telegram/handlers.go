@@ -7,6 +7,7 @@ type handlerType func(bundle Bundle) error
 type handlersRegistry struct {
 	handlers    map[string]handlerType
 	replyHandlers map[string]handlerType
+	partialTextReplyHandlers map[string]handlerType
 	defaultHandlers map[string]handlerType
 }
 
@@ -14,7 +15,7 @@ func newHandlersRegistry() handlersRegistry {
 	return handlersRegistry{
 		handlers: map[string]handlerType{},
 		replyHandlers: map[string]handlerType{},
-		defaultHandlers: map[string]handlerType{},
+		defaultHandlers: map[string]handlerType{"default": func(b Bundle) error {return nil}},
 	}
 }
 
@@ -62,4 +63,16 @@ func (registy *handlersRegistry) addDefaultHandler(handler handlerType) {
 
 func (registry *handlersRegistry) getDefaultHandler() handlerType {
 	return registry.defaultHandlers["default"]
+}
+
+func (registry *handlersRegistry) partialTextHandlerExist(replyText string) bool {
+	return true
+}
+
+func (registry *handlersRegistry) getHandlerByPartialMessageText(replyText string) handlerType {
+	if !registry.partialTextHandlerExist(replyText) {
+		return nil
+	}
+	val := registry.partialTextReplyHandlers[replyText]
+	return val
 }
