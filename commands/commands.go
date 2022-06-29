@@ -116,9 +116,10 @@ func showHelpMessage(b telegram.Bundle) {
 		"That's what i can do"+"\n\n"+
 			"/setme - set your birthday"+"\n"+
 			"/addfriend - add your friend's birthday"+"\n"+
-			"/mybirthday - show your birthday"+"\n"+
-			"/chatbirthdays - show birthdays in chats you own"+"\n"+
-			"/syncgroups - save groups which you and celebot are participated in",
+			"/friends - show friends list"+"\n"+
+			"/me - show your birthday"+"\n"+
+			"/chats - (beta) show birthdays in chats you own"+"\n"+
+			"/syncgroups - (beta) synchronize groups which you and celebot are participated in",
 		false,
 	)
 }
@@ -229,7 +230,7 @@ func ShowChatBirthdays(b telegram.Bundle) error {
 	chatsBirthdays := ""
 	isErrorOccured := false
 	for _, chat := range *chats {
-		chatsBirthdays += "For group " + chat.Title
+		chatsBirthdays += "For chat " + chat.Title
 
 		chatMembers, err := db.GetChatMembers(chat.ID)
 		if err != nil {
@@ -305,6 +306,69 @@ func SyncGroupsCommand(b telegram.Bundle) error {
 		"Cool! We have groups incommon: " + "\n" + foundGroups + "\n",
 		false,
 	)
+
+	return nil
+}
+
+func AddFriendCommand(b telegram.Bundle) error {
+	chatId := b.Message().GetChatIdStr()
+	b.SendMessage(chatId, "Ok, send me your friend's name", true)
+	return nil
+}
+
+func AddFriendSaveNameCommandReply(b telegram.Bundle) error {
+	message := b.Message()
+	friend := db.Friend{
+		Name: message.Text,
+		BirthDay: "not specified",
+		UserId: message.From.Id,
+		ChatId: message.Chat.Id,
+	}
+	friend.Save()
+
+	b.SendMessage(message.GetChatIdStr(), "Ok, now send me your friend's birthday in format: dd.mm, for example 03.01", true)
+
+	return nil
+}
+
+func AddFriendBirthdayCommandReply(b telegram.Bundle) error {
+	message := b.Message()
+
+	if !isBirthdatyCorrect(message.Text) {
+		b.SendMessage(message.GetChatIdStr(), "Ooops, i guess it is in wrong format, try again please", true)
+		return nil
+	}
+
+	friend := db.Friend{
+		UserId: message.From.Id,
+		ChatId: message.Chat.Id,
+	}
+
+	friend.GetFriendWithUnspecifiedBirthday()
+
+	friend.UpdateForBirthday(friend.Name, message.Text)
+
+
+	b.SendMessage(message.GetChatIdStr(), "Cool! Friend " + friend.Name + " saved", false)
+
+	return nil
+}
+
+func FriendsListCommand(b telegram.Bundle) error {
+	message := b.Message()
+
+	user := db.User{ID: message.From.Id}
+
+	user.GetWithFriends(true)
+	friend := db.Friend{UserId: user.ID}
+	friend.DeleteEmptyBirthdays()
+
+	friendsList := user.FriendsListAsString()
+	if friendsList == "" {
+		friendsList = "Friends list is empty! /help"
+	}
+
+	b.SendMessage(message.GetChatIdStr(), friendsList, false)
 
 	return nil
 }

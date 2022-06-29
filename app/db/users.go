@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -45,7 +44,7 @@ func (user *User) Get() error {
     return nil
 }
 
-func (user *User) GetById(fetchFriends bool) error {
+func (user *User) GetWithFriends(fetchFriends bool) error {
 	stmt, err := Client.Prepare("SELECT id, name, tgusername, chatid, birthday FROM user WHERE id=$1;")
     if err != nil {
         log.Println("Error when trying to prepare statement for getting user by id")
@@ -125,10 +124,75 @@ func (friend *Friend) Save() error {
 
     insertErr := stmt.QueryRow(friend.Name, friend.BirthDay, friend.UserId, friend.ChatId).Scan(&friend.ID)
     if insertErr != nil {
-        _ = fmt.Sprintf("Error when trying to save friend with id: %d", friend.ID)
+        log.Printf("Error when trying to save friend: " + insertErr.Error())
         return err
     }
     log.Println("Friend added")
 
     return nil
+}
+
+func (friend *Friend) UpdateForBirthday(name, birthday string) error {
+	stmt, err := Client.Prepare(
+        "UPDATE friend " + 
+        "SET name=$1, birthday=$2 " +
+        "WHERE birthday = 'not specified' AND userid=$3",
+    )
+    if err != nil {
+        log.Println("Error when trying to prepare statement for update friend: " + err.Error())
+        return err
+    }
+    defer stmt.Close()
+
+    updateErr := stmt.QueryRow(&friend.Name, birthday, &friend.UserId).Scan()
+    if updateErr != nil {
+        log.Println("Error when trying to udpate friend: " + updateErr.Error())
+        return err
+    }
+
+    log.Println("Friend updated")
+
+    return nil
+}
+
+func (friend *Friend) GetFriendWithUnspecifiedBirthday() error {
+    stmt, err := Client.Prepare(
+        "SELECT name, birthday, userid, chatid " +
+        "FROM friend " +
+        "WHERE birthday = 'not specified' AND userid = $1 AND chatid = $2",
+    )
+    if err != nil {
+        log.Println("Error when trying to prepare statement for get friend: " + err.Error())
+        return err
+    }
+    defer stmt.Close()
+
+    updateErr := stmt.QueryRow(&friend.UserId, &friend.ChatId).Scan(&friend.Name, &friend.BirthDay, &friend.UserId, &friend.ChatId)
+    if updateErr != nil {
+        log.Println("Error when trying to get friend: " + updateErr.Error())
+        return err
+    }
+
+    return nil
+}
+
+func (friend *Friend) DeleteEmptyBirthdays() error {
+    stmt, err := Client.Prepare(
+		`DELETE FROM friend WHERE birthday = 'not specified' AND userid = $1`,
+	)
+	if err != nil {
+		log.Println("Error when trying to prepare statement for deleting friend: " + err.Error())
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(&friend.UserId)
+	if err != nil {
+		log.Println("Error when trying to delete friend: " + err.Error())
+		return err
+	}
+
+	log.Println("friends deleted")
+
+	return nil
 }
