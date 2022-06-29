@@ -159,7 +159,7 @@ func (friend *Friend) GetFriendWithUnspecifiedBirthday() error {
     stmt, err := Client.Prepare(
         "SELECT name, birthday, userid, chatid " +
         "FROM friend " +
-        "WHERE birthday = 'not specified' AND userid = $1 AND chatid = $2",
+        "WHERE birthday = 'not specified' AND userid = $1 AND chatid = $2;",
     )
     if err != nil {
         log.Println("Error when trying to prepare statement for get friend: " + err.Error())
@@ -178,7 +178,7 @@ func (friend *Friend) GetFriendWithUnspecifiedBirthday() error {
 
 func (friend *Friend) DeleteEmptyBirthdays() error {
     stmt, err := Client.Prepare(
-		`DELETE FROM friend WHERE birthday = 'not specified' AND userid = $1`,
+		`DELETE FROM friend WHERE birthday = 'not specified' AND userid = $1;`,
 	)
 	if err != nil {
 		log.Println("Error when trying to prepare statement for deleting friend: " + err.Error())
@@ -192,7 +192,28 @@ func (friend *Friend) DeleteEmptyBirthdays() error {
 		return err
 	}
 
-	log.Println("friends deleted")
+	log.Println("empty friend rows deleted")
+
+	return nil
+}
+
+func (friend *Friend) DeleteFriendsByUserId() error {
+    stmt, err := Client.Prepare(
+		`DELETE FROM friend WHERE userid = $1;`,
+	)
+	if err != nil {
+		log.Println("Error when trying to prepare statement for deleting friend: " + err.Error())
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(&friend.UserId)
+	if err != nil {
+		log.Println("Error when trying to delete friend: " + err.Error())
+		return err
+	}
+
+	log.Println("friends list clear")
 
 	return nil
 }

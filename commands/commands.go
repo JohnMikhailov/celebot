@@ -117,6 +117,7 @@ func showHelpMessage(b telegram.Bundle) {
 			"/setme - set your birthday"+"\n"+
 			"/addfriend - add your friend's birthday"+"\n"+
 			"/friends - show friends list"+"\n"+
+			"/clear - clear your friends birthday list"+"\n"+
 			"/me - show your birthday"+"\n"+
 			"/chats - (beta) show birthdays in chats you own"+"\n"+
 			"/syncgroups - (beta) synchronize groups which you and celebot are participated in",
@@ -348,7 +349,6 @@ func AddFriendBirthdayCommandReply(b telegram.Bundle) error {
 
 	friend.UpdateForBirthday(friend.Name, message.Text)
 
-
 	b.SendMessage(message.GetChatIdStr(), "Cool! Friend " + friend.Name + " saved", false)
 
 	return nil
@@ -361,6 +361,7 @@ func FriendsListCommand(b telegram.Bundle) error {
 
 	user.GetWithFriends(true)
 	friend := db.Friend{UserId: user.ID}
+
 	friend.DeleteEmptyBirthdays()
 
 	friendsList := user.FriendsListAsString()
@@ -369,6 +370,24 @@ func FriendsListCommand(b telegram.Bundle) error {
 	}
 
 	b.SendMessage(message.GetChatIdStr(), friendsList, false)
+
+	return nil
+}
+
+func ClearFriendsListCommand(b telegram.Bundle) error {
+	message := b.Message()
+
+	b.SendMessage(message.GetChatIdStr(), "A you sure you want to clear friends list? Send any key", true)
+	return nil
+}
+
+func ClearFriendsListReplyCommand(b telegram.Bundle) error {
+	message := b.Message()
+
+	friend := db.Friend{UserId: message.From.Id}
+	friend.DeleteFriendsByUserId()
+
+	b.SendMessage(message.GetChatIdStr(), "Friends list is clear!", false)
 
 	return nil
 }

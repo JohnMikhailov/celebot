@@ -26,6 +26,9 @@ func main() {
 	bot.AddReplyHandler("Ok, now send me your friend's birthday in format: dd.mm, for example 03.01", commands.AddFriendBirthdayCommandReply)
 	bot.AddReplyHandler("Ooops, i guess it is in wrong format, try again please", commands.AddFriendBirthdayCommandReply)
 
+	bot.AddHandler("/clear", commands.ClearFriendsListCommand)
+	bot.AddReplyHandler("A you sure you want to clear friends list? Send any key", commands.ClearFriendsListReplyCommand)
+
 	bot.SetDefaultHandler(commands.DefaultHandler)
 
 	bot.StartPolling()
