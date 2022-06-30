@@ -1,7 +1,9 @@
 package db
 
-
-import "strconv"
+import (
+	"strconv"
+	"hash/fnv"
+)
 
 
 type User struct {
@@ -10,9 +12,17 @@ type User struct {
 	ID int `json:"id"`  // id will be taken from telegram
 	Name string `json:"name"`
 	TGusername string `json:"tgusername"`
-	ChatId int `json:"chatid"`
+	ChatId int `json:"chatid"`  // chatId - id of chat with user, bot uses it to send notification
+	Birthday string `json:"birthday"`
 
 	Friends []Friend
+}
+
+func (user *User) GetTGUserName() string {
+	if string(user.TGusername[0]) == "@" {
+		return user.TGusername
+	}
+	return "@" + user.TGusername
 }
 
 func (user *User) FriendsListAsString() string {
@@ -29,21 +39,31 @@ type Friend struct {
 	UserId int `json:"userid"`
 	BirthDay string `json:"birthday"`
 	ChatId int `json:"chatid"`
+}
 
-	Links []Link
+type Chat struct {
+	ID int `json:"id"`  // id will be taken from telegram
+	Type string `json:"type"`
+	Title string `json:"title"`
+	Username string `json:"username"`
+	FirstName string `json:"firstname"`
+	LastName string `json:"lastname"`
+	OwnerId int `json:"ownerid"`
+}
+
+type UserChat struct {
+	ID int `json:"id"`
+	UserId int `json:"userid"`
+	ChatId int `json:"chatid"`
+}
+
+func HashUserChat(newUserId, newChatId int) int {
+	userChatIdHash := fnv.New32a()
+	idsum := strconv.Itoa(newUserId) + strconv.Itoa(newChatId)
+	userChatIdHash.Write([]byte(idsum))
+	return int(userChatIdHash.Sum32())
 }
 
 func (friend Friend) GetChatIdStr() string {
 	return strconv.Itoa(friend.ChatId)
-}
-
-type Link struct {
-	ID int `json:"id"`
-	URL string `json:"url"`
-	FriendId string `json:"friendid"`
-}
-
-type Congratulations struct {
-	ID int `json:"id"`
-	Text string `json:"text"`
 }
