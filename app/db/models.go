@@ -19,9 +19,6 @@ type User struct {
 }
 
 func (user *User) GetTGUserName() string {
-	if string(user.TGusername[0]) == "@" {
-		return user.TGusername
-	}
 	return "@" + user.TGusername
 }
 
