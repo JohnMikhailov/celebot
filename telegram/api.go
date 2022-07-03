@@ -145,7 +145,7 @@ func (client apiClient) GetChatAdministrators(chatId string) (*[]chatMember, err
 	return &res.Result, nil
 }
 
-func (client apiClient) GetChatMember(chatId, userId string) (*chatMember, error) {
+func (client apiClient) GetChatMember(chatId, userId string) (*singleChatMemberResponse, error) {
 	// TODO use url module
 	// TODO add user-agent header
 	// TODO use model for body
@@ -186,7 +186,7 @@ func (client apiClient) GetChatMember(chatId, userId string) (*chatMember, error
 		log.Println(errorRes.Description)
 	}
 
-	return &res.Result, nil
+	return &res, nil
 }
 
 func (client apiClient) GetMe() (*user, error) {

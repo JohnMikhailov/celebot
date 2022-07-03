@@ -15,7 +15,7 @@ type Bundle interface {
 	SendMessage(text, chatId string, needForceReply bool) *message
 	GetChatAdministrators(chatId string) (*[]chatMember, error)
 	GetChatOwner(chatId string) (*chatMember, error)
-	GetChatMember(chatId, userId int) (*chatMember, error)
+	GetChatMember(chatId, userId int) (*singleChatMemberResponse, error)
 	GetMe() (*user, error)
 	Args() []string
 }
@@ -85,7 +85,7 @@ func (b *bundle) GetChatOwner(chatId string) (*chatMember, error) {
 	return nil, nil
 }
 
-func (b *bundle) GetChatMember(chatId, userId int) (*chatMember, error) {
+func (b *bundle) GetChatMember(chatId, userId int) (*singleChatMemberResponse, error) {
 	chatIdStr := strconv.Itoa(chatId)
 	userIdStr := strconv.Itoa(userId)
 

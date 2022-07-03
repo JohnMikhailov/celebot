@@ -276,11 +276,16 @@ func SyncGroupsCommand(b telegram.Bundle) error {
 
 	groupsInCommon := []string{}
 	for _, chat := range *chats {
-		member, err := b.GetChatMember(chat.ID, userId)
+		memberResponse, err := b.GetChatMember(chat.ID, userId)
+		if !memberResponse.Ok {
+			continue
+		}
 		if err != nil {
 			b.SendMessage(message.GetChatIdStr(), errMessage, false)
 			return err
 		}
+
+		member := memberResponse.Result
 
 		userChat := db.UserChat{UserId: member.User.Id, ChatId: chat.ID}
 		err = userChat.Save()
