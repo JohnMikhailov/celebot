@@ -12,10 +12,9 @@ func main() {
 	bot := telegram.NewBot(token)
 	bot.AddHandler("/start", commands.StartCommand)
 	bot.AddHandler("/me", commands.GetBirthDay)
-	bot.AddHandler("/syncgroups", commands.SyncGroupsCommand)
-	bot.AddHandler("/chats", commands.ShowChatBirthdays)
-	bot.AddHandler("/friends", commands.FriendsListCommand)
 	bot.AddHandler("/help", commands.HelpCommand)
+	bot.AddHandler("/friends", commands.FriendsListCommand)
+	bot.AddHandler("/chat", commands.ChatCommand)
 
 	bot.AddHandler("/setme", commands.SetBirthdayCommand)
 	bot.AddReplyHandler("Send me your birthday in format: dd.mm, for example 03.01", commands.SetMyBirthdayCommandReply)
@@ -28,6 +27,9 @@ func main() {
 
 	bot.AddHandler("/clear", commands.ClearFriendsListCommand)
 	bot.AddReplyHandler("A you sure you want to clear friends list? Send any key", commands.ClearFriendsListReplyCommand)
+
+	bot.AddHandler("/code", commands.AuthCodeCommand)
+	bot.AddReplyHandler("Enter access code", commands.AuthCodeCommandReply)
 
 	bot.SetDefaultHandler(commands.DefaultHandler)
 

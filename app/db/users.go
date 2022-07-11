@@ -6,9 +6,9 @@ import (
 
 func (user *User) Save() error {
 	stmt, err := Client.Prepare(
-        "INSERT INTO user(id, name, tgusername, chatid, birthday) " +
-        "VALUES($1, $2, $3, $4, $5) " +
-        "ON CONFLICT(id) DO UPDATE SET name=$2, tgusername=$3, chatid=$4, birthday=$5 " +
+        "INSERT INTO user(id, name, tgusername, chatid, birthday, isadmin) " +
+        "VALUES($1, $2, $3, $4, $5, $6) " +
+        "ON CONFLICT(id) DO UPDATE SET name=$2, tgusername=$3, chatid=$4, birthday=$5, isadmin=$6 " +
         "RETURNING id;",
     )
     if err != nil {
@@ -17,7 +17,7 @@ func (user *User) Save() error {
     }
     defer stmt.Close()
 
-    insertErr := stmt.QueryRow(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday).Scan(&user.ID)
+    insertErr := stmt.QueryRow(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday, &user.IsAdmin).Scan(&user.ID)
     if insertErr != nil {
         log.Println("Error when trying to save user: " + err.Error())
         return err
@@ -28,7 +28,7 @@ func (user *User) Save() error {
 }
 
 func (user *User) Get() error {
-    stmt, err := Client.Prepare("SELECT id, name, tgusername, chatid, birthday FROM user WHERE id=$1;")
+    stmt, err := Client.Prepare("SELECT id, name, tgusername, chatid, birthday, isadmin FROM user WHERE id=$1;")
     if err != nil {
         log.Println("Error when trying to prepare statement for getting user by id: " + err.Error())
         return err
@@ -36,12 +36,30 @@ func (user *User) Get() error {
     defer stmt.Close()
 
     result := stmt.QueryRow(&user.ID)
-    if err := result.Scan(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday); err != nil {
+    if err := result.Scan(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday, &user.IsAdmin); err != nil {
         log.Println("Error when trying to get User by ID: " + err.Error())
         return err
     }
 
     return nil
+}
+
+func (user *User) IsExist() (bool, error) {
+    stmt, err := Client.Prepare("SELECT COUNT(user.id) FROM user WHERE id=$1;")
+    if err != nil {
+        log.Println("Error when trying to prepare statement for getting user by id: " + err.Error())
+        return false, err
+    }
+    defer stmt.Close()
+
+    result := stmt.QueryRow(&user.ID)
+    var count *int
+    if err := result.Scan(&count); err != nil {
+        log.Println("Error when trying to get User by ID: " + err.Error())
+        return false, err
+    }
+
+    return *count == 1, nil
 }
 
 func (user *User) GetWithFriends(fetchFriends bool) error {
@@ -216,4 +234,31 @@ func (friend *Friend) DeleteFriendsByUserId() error {
 	log.Println("friends list clear")
 
 	return nil
+}
+
+func GetAllClubUsers() (*[]User, error) {
+    stmt, err := Client.Prepare("SELECT id, name, tgusername, chatid, birthday, isadmin FROM user;")
+    if err != nil {
+        log.Println("Error when trying to prepare statement for get all club users: " + err.Error())
+        return nil, err
+    }
+    defer stmt.Close()
+
+    results, err := stmt.Query()
+    if err != nil {
+        log.Println("Error when trying to get friend: " + err.Error())
+        return nil, err
+    }
+
+    users := []User{}
+    for results.Next() {
+        user := User{}
+        if err := results.Scan(&user.ID, &user.Name, &user.TGusername, &user.ChatId, &user.Birthday, &user.IsAdmin); err != nil {
+            log.Println("Error during fetching all users " + err.Error())
+            continue
+        }
+        users = append(users, user)
+    }
+
+    return &users, nil
 }

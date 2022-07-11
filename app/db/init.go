@@ -23,7 +23,8 @@ func create_tables(client *sql.DB) error {
 		name VARCHAR,
 		tgusername VARCHAR,
 		chatid VARCHAR,
-		birthday VARCHAR
+		birthday VARCHAR,
+		isadmin INTEGER
 	);`
 
 	create_friend_table_sql := `CREATE TABLE IF NOT EXISTS friend (
@@ -34,28 +35,9 @@ func create_tables(client *sql.DB) error {
 		userid INTEGER
 	);`
 
-	create_chat_table_sql := `CREATE TABLE IF NOT EXISTS chat (
-		id INTEGER PRIMARY KEY,
-		type VARCHAR,
-		title VARCHAR,
-		username VARCHAR,
-		firstname VARCHAR,
-		lastname VARCHAR,
-		ownerid INTEGER
-	);`
-
-	create_user_chat_table_sql := `CREATE TABLE IF NOT EXISTS userchat (
-		id INTEGER PRIMARY KEY,
-		userid INTEGER,
-		chatid INTEGER,
-		UNIQUE (userid, chatid)
-	);`
-
 	for _, table := range []string{
 		create_user_table_sql,
 		create_friend_table_sql,
-		create_chat_table_sql,
-		create_user_chat_table_sql,
 	} {
 		err := create_table(client, table)
 		if err != nil {

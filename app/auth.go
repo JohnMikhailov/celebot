@@ -1,11 +1,23 @@
 package app
 
-import "log"
+import "github.com/meehighlov/celebot/app/db"
 
-func IsAllowedUser(username string) bool {
-	if !GetConfig().IsUsernameExist(username) {
-		log.Println("Not permited user " + username + " tried to call celebot")
+
+func IsAuthUser(userId int) bool {
+	user := db.User{ID: userId}
+	isExist, err := user.IsExist()
+	if err != nil {
 		return false
 	}
-	return true
+	return isExist
+}
+
+func IsAdmin(userId int) bool {
+	user := db.User{ID: userId}
+	err := user.Get()
+	if err != nil {
+		return false
+	}
+
+	return user.HasAdminAccess()
 }

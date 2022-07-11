@@ -14,8 +14,13 @@ type User struct {
 	TGusername string `json:"tgusername"`
 	ChatId int `json:"chatid"`  // chatId - id of chat with user, bot uses it to send notification
 	Birthday string `json:"birthday"`
+	IsAdmin int `json:"isadmin"`
 
 	Friends []Friend
+}
+
+func (user *User) HasAdminAccess() bool {
+	return user.IsAdmin == 1
 }
 
 func (user *User) GetTGUserName() string {

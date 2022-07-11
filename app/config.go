@@ -7,14 +7,13 @@ import (
 	"time"
 )
 
-type empty int
-
 type config struct {
 	BOTTOKEN_CELEBOT                 string
 	LONGPOLLING_WORKERS              int
 	DEFAULT_DELAY_BETWEEN_CHECKS_SEC time.Duration
-	ALLOWED_USERS                    map[string]empty
 	BD_NOTIFICATION_HOUR_MOSCOW_TZ   int
+	CLUBCODE                         string
+	ADMINCODE                        string
 }
 
 var config_ config
@@ -35,15 +34,10 @@ func init() {
 	if err != nil {
 		log.Fatalf("Parse var error for: BD_NOTIFICATION_HOUR_MOSCOW_TZ")
 	}
+	config_.CLUBCODE = os.Getenv("CLUBCODE")
+	config_.ADMINCODE = os.Getenv("ADMINCODE")
 }
 
 func GetConfig() *config {
 	return &config_
-}
-
-func (c *config) IsUsernameExist(username string) bool {
-	if _, ok := c.ALLOWED_USERS[username]; ok {
-		return true
-	}
-	return false
 }
