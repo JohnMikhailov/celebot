@@ -101,7 +101,7 @@ func StartCommand(b telegram.Bundle) error {
 	b.SendMessage(
 		message.GetChatIdStr(),
 		"Hi, i'm celebot, i will remind you about your friend's birthdays 🤗" + "\n" +
-		"Got access code? Call /code to pass it!",
+		"Got access code? Type /code to pass it!",
 		false,
 	)
 
@@ -110,13 +110,12 @@ func StartCommand(b telegram.Bundle) error {
 
 func showHelpMessage(b telegram.Bundle, additional *string) {
 	helpMessage := (
-		"That's what i can do"+"\n\n"+
 		"/me - show your birthday"+"\n"+
 		"/setme - set your birthday"+"\n"+
-		"/addfriend - add your friend's birthday"+"\n"+
-		"/friends - show friends list"+"\n"+
-		"/clear - clear your friends birthday list"+"\n"+
-		"/code - use this command to pass access code")
+		"/add - add birthday reminder"+"\n"+
+		"/show - show birthday list"+"\n"+
+		"/clear - clear birthday list"+"\n"+
+		"/code - pass access code")
 
 	if additional != nil {
 		helpMessage += "\n" + *additional
@@ -132,7 +131,7 @@ func showHelpMessage(b telegram.Bundle, additional *string) {
 func showHelpMessageNoAuth(b telegram.Bundle) {
 	b.SendMessage(
 		b.Message().GetChatIdStr(),
-		"/code - use this command to pass access code",
+		"/code - pass access code",
 		false,
 	)
 }
@@ -205,7 +204,7 @@ func AddFriendBirthdayCommandReply(b telegram.Bundle) error {
 
 	friend.UpdateForBirthday(friend.Name, message.Text)
 
-	b.SendMessage(message.GetChatIdStr(), "Cool! Friend " + friend.Name + " saved 😉", false)
+	b.SendMessage(message.GetChatIdStr(), "Cool! Reminder for " + friend.Name + " saved 😉", false)
 
 	return nil
 }
@@ -222,7 +221,7 @@ func FriendsListCommand(b telegram.Bundle) error {
 
 	friendsList := user.FriendsListAsString()
 	if friendsList == "" {
-		friendsList = "Friends list is empty! /help"
+		friendsList = "Birthday list is empty 👉👈 /help"
 	}
 
 	b.SendMessage(message.GetChatIdStr(), friendsList, false)
@@ -246,7 +245,7 @@ func ClearFriendsListReplyCommand(b telegram.Bundle) error {
 	friend := db.Friend{UserId: message.From.Id}
 	friend.DeleteFriendsByUserId()
 
-	b.SendMessage(message.GetChatIdStr(), "Friends list is clear 🙌", false)
+	b.SendMessage(message.GetChatIdStr(), "Birthday list is clear 🙌", false)
 
 	return nil
 }
@@ -290,7 +289,7 @@ func AuthCodeCommandReply(b telegram.Bundle) error {
 	clubCode := app.GetConfig().CLUBCODE
 	adminCode := app.GetConfig().ADMINCODE
 
-	messageText := "You rock 🥳 Now command list is available for you /help"
+	messageText := "You rock 🥳 Type /help to see all available commands"
 
 	switch code {
 	case clubCode:
@@ -299,7 +298,7 @@ func AuthCodeCommandReply(b telegram.Bundle) error {
 	case adminCode:
 		isAdmin := true
 		saveClubUser(b, isAdmin)
-		messageText = "Hello, mister admin 😎 Now command list is available for you /help"
+		messageText = "Hello, mister admin 😎 Type /help to see all available commands"
 	default:
 		b.SendMessage(message.GetChatIdStr(), "Incorrect code 🙂", false)
 		return nil
@@ -324,7 +323,7 @@ func ChatCommand(b telegram.Bundle) error {
 
 	text := ""
 	for _, user := range *users {
-		text += user.Name + " " + user.GetTGUserName() + " " + user.Birthday
+		text += user.Name + " " + user.GetTGUserName() + " " + user.Birthday + "\n"
 	}
 
 	b.SendMessage(message.GetChatIdStr(), text, false)
