@@ -259,14 +259,19 @@ func saveClubUser(b telegram.Bundle, isAdmin bool) error {
 		dbIsAdmin = 1
 	}
 
-	user := db.User{
-		ID:         message.From.Id,
-		Name:       message.From.FirstName,
-		TGusername: message.From.Username,
-		ChatId:     message.Chat.Id,
-		Birthday:   "not specified",
-		IsAdmin:    dbIsAdmin,
+	user := db.User{ID: message.From.Id}
+
+	if err := user.Get(); err == nil {
+		user.IsAdmin = dbIsAdmin
+		user.Save()
+		return nil
 	}
+
+	user.Name = message.From.FirstName
+	user.TGusername = message.From.Username
+	user.ChatId = message.Chat.Id
+	user.Birthday = "not specified"
+	user.IsAdmin = dbIsAdmin
 
 	user.Save()
 
@@ -285,6 +290,8 @@ func AuthCodeCommandReply(b telegram.Bundle) error {
 	clubCode := app.GetConfig().CLUBCODE
 	adminCode := app.GetConfig().ADMINCODE
 
+	messageText := "You rock 🥳 Now command list is available for you /help"
+
 	switch code {
 	case clubCode:
 		isAdmin := false
@@ -292,12 +299,13 @@ func AuthCodeCommandReply(b telegram.Bundle) error {
 	case adminCode:
 		isAdmin := true
 		saveClubUser(b, isAdmin)
+		messageText = "Hello, mister admin 😎 Now command list is available for you /help"
 	default:
 		b.SendMessage(message.GetChatIdStr(), "Incorrect code 🙂", false)
 		return nil
 	}
 
-	b.SendMessage(message.GetChatIdStr(), "You rock 😎 Now command list is available for you /help", false)
+	b.SendMessage(message.GetChatIdStr(), messageText, false)
 
 	return nil
 }

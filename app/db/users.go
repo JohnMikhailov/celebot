@@ -44,11 +44,11 @@ func (user *User) Get() error {
     return nil
 }
 
-func (user *User) IsExist() (bool, error) {
+func (user *User) IsExist() bool {
     stmt, err := Client.Prepare("SELECT COUNT(user.id) FROM user WHERE id=$1;")
     if err != nil {
         log.Println("Error when trying to prepare statement for getting user by id: " + err.Error())
-        return false, err
+        return false
     }
     defer stmt.Close()
 
@@ -56,10 +56,10 @@ func (user *User) IsExist() (bool, error) {
     var count *int
     if err := result.Scan(&count); err != nil {
         log.Println("Error when trying to get User by ID: " + err.Error())
-        return false, err
+        return false
     }
 
-    return *count == 1, nil
+    return *count == 1
 }
 
 func (user *User) GetWithFriends(fetchFriends bool) error {
