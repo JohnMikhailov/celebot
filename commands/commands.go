@@ -40,7 +40,7 @@ func SetMyBirthdayCommandReply(b telegram.Bundle) error {
 
 	user.Save()
 
-	b.SendMessage(message.GetChatIdStr(), "Cool, i've saved your birthday!", false)
+	b.SendMessage(message.GetChatIdStr(), "Cool, i've saved your birthday 😊", false)
 
 	return nil
 }
@@ -86,7 +86,7 @@ func GetBirthDay(b telegram.Bundle) error {
 	err := user.Get()
 
 	if err != nil {
-		b.SendMessage(message.GetChatIdStr(), "Hmm, i can't find your birthday... /help", false)
+		b.SendMessage(message.GetChatIdStr(), "Hmm, i can't find your birthday 🥴 /help", false)
 		return err
 	}
 
@@ -100,7 +100,7 @@ func StartCommand(b telegram.Bundle) error {
 
 	b.SendMessage(
 		message.GetChatIdStr(),
-		"Hi, i'm celebot, i will remind you about your friend's birthdays!" + "\n" +
+		"Hi, i'm celebot, i will remind you about your friend's birthdays 🤗" + "\n" +
 		"Got access code? Call /code to pass it!",
 		false,
 	)
@@ -246,7 +246,7 @@ func ClearFriendsListReplyCommand(b telegram.Bundle) error {
 	friend := db.Friend{UserId: message.From.Id}
 	friend.DeleteFriendsByUserId()
 
-	b.SendMessage(message.GetChatIdStr(), "Friends list is clear!", false)
+	b.SendMessage(message.GetChatIdStr(), "Friends list is clear 🙌", false)
 
 	return nil
 }
