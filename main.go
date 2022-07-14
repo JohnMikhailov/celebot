@@ -7,6 +7,10 @@ import (
 )
 
 func main() {
+	logFileName := app.GetConfig().LOG_FILE
+	logFile := app.SetupFileLogging(logFileName)
+	defer logFile.Close()
+
 	token := app.GetConfig().BOTTOKEN_CELEBOT
 	commands.RunChecks()
 	bot := telegram.NewBot(token)

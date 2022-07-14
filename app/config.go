@@ -14,6 +14,7 @@ type config struct {
 	BD_NOTIFICATION_HOUR_MOSCOW_TZ   int
 	CLUBCODE                         string
 	ADMINCODE                        string
+	LOG_FILE                         string
 }
 
 var config_ config
@@ -36,6 +37,7 @@ func init() {
 	}
 	config_.CLUBCODE = os.Getenv("CLUBCODE")
 	config_.ADMINCODE = os.Getenv("ADMINCODE")
+	config_.LOG_FILE = os.Getenv("LOG_FILE")
 }
 
 func GetConfig() *config {

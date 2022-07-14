@@ -48,7 +48,7 @@ func CheckBirthDays(struct{}) {
 func RunChecks() {
 	timeout := app.GetConfig().DEFAULT_DELAY_BETWEEN_CHECKS_SEC
 	tasksQueue := make(chan struct{}, 1)
-	hour_to_notify := app.GetConfig().BD_NOTIFICATION_HOUR_MOSCOW_TZ
+	hourToNotify := app.GetConfig().BD_NOTIFICATION_HOUR_MOSCOW_TZ
 	location, _ := time.LoadLocation("Europe/Moscow")
 
 	go func() {
@@ -59,7 +59,7 @@ func RunChecks() {
 	go func() {
 		for {
 			now := time.Now().In(location).Hour()
-			if now == hour_to_notify {
+			if now == hourToNotify {
 				tasksQueue <- struct{}{}
 				hour := 60 * 60
 				time.Sleep(time.Duration(hour) * time.Second)
