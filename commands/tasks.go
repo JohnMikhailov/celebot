@@ -22,7 +22,7 @@ func CheckBirthDays(struct{}) {
 	log.Println("searching for birthdays")
 
 	config := app.GetConfig()
-	client := telegram.NewApiClient(config.BOTTOKEN_CELEBOT)
+	client := telegram.NewClient(config.BOTTOKEN_CELEBOT)
 	now := time.Now()
 	dbDateFormat := now.Format("02.01.2006")
 	dayWithMonth := dbDateFormat[:5]
@@ -31,6 +31,7 @@ func CheckBirthDays(struct{}) {
 	shift := 10
 
 	for {
+		// TODO limit-offset is bad in large data amounts
 		users := getUsersToNitificate(dayWithMonth, limit, offset)
 		if len(users) == 0 {
 			break

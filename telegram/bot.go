@@ -2,7 +2,7 @@ package telegram
 
 type telegramBot struct {
 	TOKEN            string
-	client           apiClient
+	client           APICaller
 	handlersRegistry handlersRegistry
 }
 
@@ -10,7 +10,7 @@ func NewBot(token string) telegramBot {
 	return telegramBot{
 		TOKEN:            token,
 		handlersRegistry: newHandlersRegistry(),
-		client:           NewApiClient(token),
+		client:           NewClient(token),
 	}
 }
 

@@ -31,7 +31,7 @@ func (bot telegramBot) StartPolling() {
 
 	go func() {
 		for {
-			updates := bot.client.getUpdates(updatesOffset)
+			updates := bot.client.GetUpdates(updatesOffset)
 			if !updates.Ok {
 				log.Println("getting updates failed")
 			}

@@ -1,8 +1,8 @@
 package telegram
 
 import (
-	"io/ioutil"
 	"bytes"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -10,21 +10,29 @@ import (
 	"encoding/json"
 )
 
-type apiClient struct {
+type client struct {
 	urlHead string
-	token string
+	token   string
 }
 
-func NewApiClient(token string) apiClient {
-	return apiClient{token: token, urlHead: "https://api.telegram.org/bot"}
+type APICaller interface {
+	SendMessage(chatId, text string, needForceReply bool) *message
+	GetUpdates(updatesOffset int) *updateResponse
+	GetChatAdministrators(chatId string) (*[]chatMember, error)
+	GetMe() (*user, error)
+	GetChatMember(chatId, userId string) (*singleChatMemberResponse, error)
 }
 
-func (client apiClient) SendMessage(chatId, text string, needForceReply bool) *message {
+func NewClient(token string) APICaller {
+	return client{token: token, urlHead: "https://api.telegram.org/bot"}
+}
+
+func (client client) SendMessage(chatId, text string, needForceReply bool) *message {
 	// add url query schema https://core.telegram.org/bots/api#sendmessage
 	// TODO use url module
 	// TODO add user-agent header
 	// TODO use model for body
-	res := message {}
+	res := message{}
 	errorRes := errorResponse{}
 	url := client.urlHead + client.token + "/sendMessage"
 
@@ -39,8 +47,8 @@ func (client apiClient) SendMessage(chatId, text string, needForceReply bool) *m
 	json_data, err := json.Marshal(body)
 
 	if err != nil {
-        log.Fatal(err)
-    }
+		log.Fatal(err)
+	}
 
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(json_data))
 
@@ -66,15 +74,15 @@ func (client apiClient) SendMessage(chatId, text string, needForceReply bool) *m
 	return &res
 }
 
-func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
+func (client client) GetUpdates(updatesOffset int) *updateResponse {
 	// add url query schema https://core.telegram.org/bots/api#getupdates
 	// TODO use url module
 	// TODO add user-agent header
 	url := client.urlHead +
-	client.token + "/" +
-			"getUpdates" +
-			"?timeout=10" +
-			"&offset=" + strconv.Itoa(updatesOffset)
+		client.token + "/" +
+		"getUpdates" +
+		"?timeout=10" +
+		"&offset=" + strconv.Itoa(updatesOffset)
 
 	res := updateResponse{}
 	errorRes := errorResponse{}
@@ -102,7 +110,7 @@ func (client apiClient) getUpdates(updatesOffset int) *updateResponse {
 	return &res
 }
 
-func (client apiClient) GetChatAdministrators(chatId string) (*[]chatMember, error) {
+func (client client) GetChatAdministrators(chatId string) (*[]chatMember, error) {
 	// TODO use url module
 	// TODO add user-agent header
 	// TODO use model for body
@@ -145,7 +153,7 @@ func (client apiClient) GetChatAdministrators(chatId string) (*[]chatMember, err
 	return &res.Result, nil
 }
 
-func (client apiClient) GetChatMember(chatId, userId string) (*singleChatMemberResponse, error) {
+func (client client) GetChatMember(chatId, userId string) (*singleChatMemberResponse, error) {
 	// TODO use url module
 	// TODO add user-agent header
 	// TODO use model for body
@@ -189,7 +197,7 @@ func (client apiClient) GetChatMember(chatId, userId string) (*singleChatMemberR
 	return &res, nil
 }
 
-func (client apiClient) GetMe() (*user, error) {
+func (client client) GetMe() (*user, error) {
 	// TODO use url module
 	// TODO add user-agent header
 	// TODO use model for body
