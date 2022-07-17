@@ -6,13 +6,19 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"encoding/json"
 )
 
-type client struct {
+type requestBodyType map[string]interface{}
+
+type telegramClient struct {
 	urlHead string
 	token   string
+	baseUrl string
+
+	httpClient *http.Client
 }
 
 type APICaller interface {
@@ -24,57 +30,17 @@ type APICaller interface {
 }
 
 func NewClient(token string) APICaller {
-	return client{token: token, urlHead: "https://api.telegram.org/bot"}
+	httpClient := &http.Client{Timeout: 20 * time.Second}
+	urlHead := "https://api.telegram.org/bot"
+	return telegramClient{
+		token: token,
+		urlHead: urlHead,
+		baseUrl: urlHead + token,
+		httpClient: httpClient,
+	}
 }
 
-func (client client) SendMessage(chatId, text string, needForceReply bool) *message {
-	// add url query schema https://core.telegram.org/bots/api#sendmessage
-	// TODO use url module
-	// TODO add user-agent header
-	// TODO use model for body
-	res := message{}
-	errorRes := errorResponse{}
-	url := client.urlHead + client.token + "/sendMessage"
-
-	body := map[string]string{"chat_id": chatId, "text": text}
-	if needForceReply {
-		force_reply_json, err := json.Marshal(map[string]bool{"force_reply": true, "selective": true})
-		if err != nil {
-			log.Fatal(err)
-		}
-		body["reply_markup"] = string(force_reply_json)
-	}
-	json_data, err := json.Marshal(body)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(json_data))
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	defer resp.Body.Close()
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	bodyString := string(bodyBytes)
-
-	if resp.StatusCode == http.StatusOK {
-		if err != nil {
-			log.Fatal(err)
-		}
-		json.Unmarshal([]byte(bodyString), &res)
-	} else {
-		json.Unmarshal([]byte(bodyString), &errorRes)
-		log.Println(errorRes.Description)
-	}
-
-	return &res
-}
-
-func (client client) GetUpdates(updatesOffset int) *updateResponse {
+func (client telegramClient) GetUpdates(updatesOffset int) *updateResponse {
 	// add url query schema https://core.telegram.org/bots/api#getupdates
 	// TODO use url module
 	// TODO add user-agent header
@@ -110,7 +76,7 @@ func (client client) GetUpdates(updatesOffset int) *updateResponse {
 	return &res
 }
 
-func (client client) GetChatAdministrators(chatId string) (*[]chatMember, error) {
+func (client telegramClient) GetChatAdministrators(chatId string) (*[]chatMember, error) {
 	// TODO use url module
 	// TODO add user-agent header
 	// TODO use model for body
@@ -153,7 +119,7 @@ func (client client) GetChatAdministrators(chatId string) (*[]chatMember, error)
 	return &res.Result, nil
 }
 
-func (client client) GetChatMember(chatId, userId string) (*singleChatMemberResponse, error) {
+func (client telegramClient) GetChatMember(chatId, userId string) (*singleChatMemberResponse, error) {
 	// TODO use url module
 	// TODO add user-agent header
 	// TODO use model for body
@@ -197,7 +163,7 @@ func (client client) GetChatMember(chatId, userId string) (*singleChatMemberResp
 	return &res, nil
 }
 
-func (client client) GetMe() (*user, error) {
+func (client telegramClient) GetMe() (*user, error) {
 	// TODO use url module
 	// TODO add user-agent header
 	// TODO use model for body
@@ -231,4 +197,69 @@ func (client client) GetMe() (*user, error) {
 	}
 
 	return &res.Result, nil
+}
+
+func (tc *telegramClient) send(request *http.Request) []byte {
+	response, err := tc.httpClient.Do(request)
+
+	if err != nil {
+		log.Fatalf("HTTP request failed " + err.Error())
+	}
+
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatalf("Failed to parse response body " + err.Error())
+	}
+
+	if response.StatusCode != http.StatusOK {
+		log.Println("Bad status code: ", response.StatusCode, " body: ",string(body))
+		return []byte{}
+	}
+
+	return body
+}
+
+func (tc *telegramClient) prepareRequest(method, urlTail string, requestBody *requestBodyType) *http.Request {
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatalf("Failed to marshal request body for " + method + " " + err.Error())
+	}
+	log.Println(bytes.NewBuffer(jsonData))
+
+	url := tc.baseUrl + "/" + urlTail
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Fatalf("Failed to create request " + err.Error())
+	}
+	req.Header.Add("ContentType", "application/json")
+
+	log.Println("prepared request: ", req.Body)
+
+	return req
+}
+
+func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyType) []byte {
+	request := tc.prepareRequest(method, urlTail, body)
+	return tc.send(request)
+}
+
+func (tc telegramClient) SendMessage(chatId, text string, needForceReply bool) *message {
+	res := message{}
+
+	body := requestBodyType{
+		"chat_id": chatId,
+		"text": text,
+		"reply_markup": requestBodyType{
+			"force_reply": needForceReply,
+			"selective": needForceReply,
+		},
+	}
+
+	responseBytes := tc.sendRequest("POST", "sendMessage", &body)
+
+	json.Unmarshal(responseBytes, &res)
+
+	return &res
 }
