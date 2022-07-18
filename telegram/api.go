@@ -42,129 +42,6 @@ func NewClient(token string) APICaller {
 	}
 }
 
-func (client telegramClient) GetChatAdministrators(chatId string) (*[]chatMember, error) {
-	// TODO use url module
-	// TODO add user-agent header
-	// TODO use model for body
-	url := client.urlHead + client.token + "/getChatAdministrators"
-
-	body := map[string]string{"chat_id": chatId}
-	json_data, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(json_data))
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	res := chatMemberResponse{}
-	errorRes := errorResponse{}
-
-	bodyString := string(bodyBytes)
-
-	if resp.StatusCode == http.StatusOK {
-		if err != nil {
-			log.Fatal(err)
-		}
-		json.Unmarshal([]byte(bodyString), &res)
-	} else {
-		json.Unmarshal([]byte(bodyString), &errorRes)
-		log.Println(errorRes.Description)
-	}
-
-	return &res.Result, nil
-}
-
-func (client telegramClient) GetChatMember(chatId, userId string) (*singleChatMemberResponse, error) {
-	// TODO use url module
-	// TODO add user-agent header
-	// TODO use model for body
-	url := client.urlHead + client.token + "/getChatMember"
-
-	body := map[string]string{"chat_id": chatId, "user_id": userId}
-	json_data, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(json_data))
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	res := singleChatMemberResponse{}
-	errorRes := errorResponse{}
-
-	bodyString := string(bodyBytes)
-
-	if resp.StatusCode == http.StatusOK {
-		if err != nil {
-
-			return nil, err
-		}
-		json.Unmarshal([]byte(bodyString), &res)
-	} else {
-		json.Unmarshal([]byte(bodyString), &errorRes)
-		log.Println(errorRes.Description)
-	}
-
-	return &res, nil
-}
-
-func (client telegramClient) GetMe() (*user, error) {
-	// TODO use url module
-	// TODO add user-agent header
-	// TODO use model for body
-	url := client.urlHead + client.token + "/getMe"
-
-	resp, err := http.Get(url)
-
-	if err != nil {
-		log.Println("Error getting info about bot: " + err.Error())
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("Error forming response from : " + err.Error())
-		return nil, err
-	}
-
-	res := getMeReponse{}
-	errorRes := errorResponse{}
-
-	bodyString := string(bodyBytes)
-
-	if resp.StatusCode == http.StatusOK {
-		json.Unmarshal([]byte(bodyString), &res)
-	} else {
-		json.Unmarshal([]byte(bodyString), &errorRes)
-		log.Println(errorRes.Description)
-	}
-
-	return &res.Result, nil
-}
-
 func (tc *telegramClient) send(request *http.Request) []byte {
 	response, err := tc.httpClient.Do(request)
 
@@ -268,4 +145,34 @@ func (tc telegramClient) GetUpdates(updatesOffset int) *updateResponse {
 	json.Unmarshal(responseBytes, &res)
 
 	return &res
+}
+
+func (tc telegramClient) GetMe() (*user, error) {
+	res := getMeReponse{}
+
+	responseBytes := tc.sendRequest("GET", "getMe", nil, nil)
+
+	json.Unmarshal(responseBytes, &res)
+
+	return &res.Result, nil
+}
+
+func (tc telegramClient) GetChatAdministrators(chatId string) (*[]chatMember, error) {
+	res := chatMemberResponse{}
+	body := requestBodyType{"chat_id": chatId}
+
+	responseBytes := tc.sendRequest("GET", "getChatAdministrators", &body, nil)
+	json.Unmarshal(responseBytes, &res)
+
+	return &res.Result, nil
+}
+
+func (tc telegramClient) GetChatMember(chatId, userId string) (*singleChatMemberResponse, error) {
+	res := singleChatMemberResponse{}
+	body := requestBodyType{"chat_id": chatId, "user_id": userId}
+
+	responseBytes := tc.sendRequest("GET", "getChatMember", &body, nil)
+	json.Unmarshal(responseBytes, &res)
+
+	return &res, nil
 }
