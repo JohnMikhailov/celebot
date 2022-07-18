@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"io"
 
 	"encoding/json"
 )
 
 type requestBodyType map[string]interface{}
+type requestQueryParamsType map[string]string
 
 type telegramClient struct {
 	urlHead string
@@ -38,42 +40,6 @@ func NewClient(token string) APICaller {
 		baseUrl: urlHead + token,
 		httpClient: httpClient,
 	}
-}
-
-func (client telegramClient) GetUpdates(updatesOffset int) *updateResponse {
-	// add url query schema https://core.telegram.org/bots/api#getupdates
-	// TODO use url module
-	// TODO add user-agent header
-	url := client.urlHead +
-		client.token + "/" +
-		"getUpdates" +
-		"?timeout=10" +
-		"&offset=" + strconv.Itoa(updatesOffset)
-
-	res := updateResponse{}
-	errorRes := errorResponse{}
-
-	resp, err := http.Get(url)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	bodyString := string(bodyBytes)
-
-	if resp.StatusCode == http.StatusOK {
-		if err != nil {
-			log.Fatal(err)
-		}
-		json.Unmarshal([]byte(bodyString), &res)
-	} else {
-		json.Unmarshal([]byte(bodyString), &errorRes)
-		log.Println(errorRes.Description)
-	}
-
-	return &res
 }
 
 func (client telegramClient) GetChatAdministrators(chatId string) (*[]chatMember, error) {
@@ -221,24 +187,52 @@ func (tc *telegramClient) send(request *http.Request) []byte {
 	return body
 }
 
-func (tc *telegramClient) prepareRequest(method, urlTail string, requestBody *requestBodyType) *http.Request {
-	jsonData, err := json.Marshal(requestBody)
-	if err != nil {
-		log.Fatalf("Failed to marshal request body for " + method + " " + err.Error())
+func prepareRequestBody(requestBody *requestBodyType) io.Reader {
+	if requestBody == nil {
+		return nil
 	}
 
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatalf("Failed to marshal request body " + err.Error())
+	}
+
+	return bytes.NewBuffer(jsonData)
+}
+
+func (tc *telegramClient) prepareQueryParams(queryParams *requestQueryParamsType, requset *http.Request) error {
+	if queryParams == nil {
+		return nil
+	}
+
+	query := requset.URL.Query()
+
+	for key, value := range *queryParams {
+		query.Add(key, value)
+	}
+
+	requset.URL.RawQuery = query.Encode()
+
+	return nil
+}
+
+func (tc *telegramClient) prepareRequest(method, urlTail string, requestBody *requestBodyType, queryParams *requestQueryParamsType) *http.Request {
+	body := prepareRequestBody(requestBody)
+
 	url := tc.baseUrl + "/" + urlTail
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		log.Fatalf("Failed to create request " + err.Error())
 	}
 	req.Header.Add("Content-Type", "application/json")
 
+	tc.prepareQueryParams(queryParams, req)
+
 	return req
 }
 
-func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyType) []byte {
-	request := tc.prepareRequest(method, urlTail, body)
+func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyType, queryParams *requestQueryParamsType) []byte {
+	request := tc.prepareRequest(method, urlTail, body, queryParams)
 	return tc.send(request)
 }
 
@@ -254,7 +248,22 @@ func (tc telegramClient) SendMessage(chatId, text string, needForceReply bool) *
 		},
 	}
 
-	responseBytes := tc.sendRequest("POST", "sendMessage", &body)
+	responseBytes := tc.sendRequest("POST", "sendMessage", &body, nil)
+
+	json.Unmarshal(responseBytes, &res)
+
+	return &res
+}
+
+func (tc telegramClient) GetUpdates(updatesOffset int) *updateResponse {
+	res := updateResponse{}
+
+	queryParams := requestQueryParamsType{
+		"timeout": "10",
+		"offset": strconv.Itoa(updatesOffset),
+	}
+
+	responseBytes := tc.sendRequest("GET", "getUpdates", nil, &queryParams)
 
 	json.Unmarshal(responseBytes, &res)
 
