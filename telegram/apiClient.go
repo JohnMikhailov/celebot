@@ -107,7 +107,9 @@ func (tc *telegramClient) prepareRequest(method, urlTail string, requestBody *re
 	return req
 }
 
-func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyType, queryParams *requestQueryParamsType) []byte {
+func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyType, queryParams *requestQueryParamsType, responseModel interface{}) error {
 	request := tc.prepareRequest(method, urlTail, body, queryParams)
-	return tc.send(request)
+	responseBytes := tc.send(request)
+	json.Unmarshal(responseBytes, responseModel)
+	return nil
 }

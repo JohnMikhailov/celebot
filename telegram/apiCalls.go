@@ -1,7 +1,6 @@
 package telegram
 
 import (
-	"encoding/json"
 	"strconv"
 )
 
@@ -17,9 +16,7 @@ func (tc telegramClient) SendMessage(chatId, text string, needForceReply bool) *
 		},
 	}
 
-	responseBytes := tc.sendRequest("POST", "sendMessage", &body, nil)
-
-	json.Unmarshal(responseBytes, &res)
+	tc.sendRequest("POST", "sendMessage", &body, nil, res)
 
 	return &res
 }
@@ -32,20 +29,14 @@ func (tc telegramClient) GetUpdates(updatesOffset int) *updateResponse {
 		"offset": strconv.Itoa(updatesOffset),
 	}
 
-	responseBytes := tc.sendRequest("GET", "getUpdates", nil, &queryParams)
-
-	json.Unmarshal(responseBytes, &res)
+	tc.sendRequest("GET", "getUpdates", nil, &queryParams, &res)
 
 	return &res
 }
 
 func (tc telegramClient) GetMe() (*user, error) {
 	res := getMeReponse{}
-
-	responseBytes := tc.sendRequest("GET", "getMe", nil, nil)
-
-	json.Unmarshal(responseBytes, &res)
-
+	tc.sendRequest("GET", "getMe", nil, nil, &res)
 	return &res.Result, nil
 }
 
@@ -53,8 +44,7 @@ func (tc telegramClient) GetChatAdministrators(chatId string) (*[]chatMember, er
 	res := chatMemberResponse{}
 	body := requestBodyType{"chat_id": chatId}
 
-	responseBytes := tc.sendRequest("GET", "getChatAdministrators", &body, nil)
-	json.Unmarshal(responseBytes, &res)
+	tc.sendRequest("GET", "getChatAdministrators", &body, nil, &res)
 
 	return &res.Result, nil
 }
@@ -63,8 +53,6 @@ func (tc telegramClient) GetChatMember(chatId, userId string) (*singleChatMember
 	res := singleChatMemberResponse{}
 	body := requestBodyType{"chat_id": chatId, "user_id": userId}
 
-	responseBytes := tc.sendRequest("GET", "getChatMember", &body, nil)
-	json.Unmarshal(responseBytes, &res)
-
+	tc.sendRequest("GET", "getChatMember", &body, nil, &res)
 	return &res, nil
 }
