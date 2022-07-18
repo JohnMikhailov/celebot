@@ -226,16 +226,13 @@ func (tc *telegramClient) prepareRequest(method, urlTail string, requestBody *re
 	if err != nil {
 		log.Fatalf("Failed to marshal request body for " + method + " " + err.Error())
 	}
-	log.Println(bytes.NewBuffer(jsonData))
 
 	url := tc.baseUrl + "/" + urlTail
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Fatalf("Failed to create request " + err.Error())
 	}
-	req.Header.Add("ContentType", "application/json")
-
-	log.Println("prepared request: ", req.Body)
+	req.Header.Add("Content-Type", "application/json")
 
 	return req
 }
