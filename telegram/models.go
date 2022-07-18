@@ -96,17 +96,6 @@ func (update *updateResponse) GetLastUpdateId() int {
 	return update.Result[len(update.Result) - 1].UpdateId
 }
 
-type responseParameters struct {
-	MigrateToChatId int `json:"migrate_to_chat_id"`
-	RetryAfter int `json:"retry_after"`
-}
-
-type errorResponse struct {
-	Ok bool `json:"ok"`
-	Description string `json:"description"`
-	Parameters responseParameters  `json:"parameters"`
-}
-
 func (message message) GetChatIdStr() string {
 	return strconv.Itoa(message.Chat.Id)
 }
