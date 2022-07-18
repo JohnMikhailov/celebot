@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 	"io"
 
@@ -64,7 +63,7 @@ func (tc *telegramClient) send(request *http.Request) []byte {
 	return body
 }
 
-func prepareRequestBody(requestBody *requestBodyType) io.Reader {
+func (tc *telegramClient) prepareRequestBody(requestBody *requestBodyType) io.Reader {
 	if requestBody == nil {
 		return nil
 	}
@@ -94,7 +93,7 @@ func (tc *telegramClient) prepareQueryParams(queryParams *requestQueryParamsType
 }
 
 func (tc *telegramClient) prepareRequest(method, urlTail string, requestBody *requestBodyType, queryParams *requestQueryParamsType) *http.Request {
-	body := prepareRequestBody(requestBody)
+	body := tc.prepareRequestBody(requestBody)
 
 	url := tc.baseUrl + "/" + urlTail
 	req, err := http.NewRequest(method, url, body)
@@ -111,68 +110,4 @@ func (tc *telegramClient) prepareRequest(method, urlTail string, requestBody *re
 func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyType, queryParams *requestQueryParamsType) []byte {
 	request := tc.prepareRequest(method, urlTail, body, queryParams)
 	return tc.send(request)
-}
-
-func (tc telegramClient) SendMessage(chatId, text string, needForceReply bool) *message {
-	res := message{}
-
-	body := requestBodyType{
-		"chat_id": chatId,
-		"text": text,
-		"reply_markup": requestBodyType{
-			"force_reply": needForceReply,
-			"selective": needForceReply,
-		},
-	}
-
-	responseBytes := tc.sendRequest("POST", "sendMessage", &body, nil)
-
-	json.Unmarshal(responseBytes, &res)
-
-	return &res
-}
-
-func (tc telegramClient) GetUpdates(updatesOffset int) *updateResponse {
-	res := updateResponse{}
-
-	queryParams := requestQueryParamsType{
-		"timeout": "10",
-		"offset": strconv.Itoa(updatesOffset),
-	}
-
-	responseBytes := tc.sendRequest("GET", "getUpdates", nil, &queryParams)
-
-	json.Unmarshal(responseBytes, &res)
-
-	return &res
-}
-
-func (tc telegramClient) GetMe() (*user, error) {
-	res := getMeReponse{}
-
-	responseBytes := tc.sendRequest("GET", "getMe", nil, nil)
-
-	json.Unmarshal(responseBytes, &res)
-
-	return &res.Result, nil
-}
-
-func (tc telegramClient) GetChatAdministrators(chatId string) (*[]chatMember, error) {
-	res := chatMemberResponse{}
-	body := requestBodyType{"chat_id": chatId}
-
-	responseBytes := tc.sendRequest("GET", "getChatAdministrators", &body, nil)
-	json.Unmarshal(responseBytes, &res)
-
-	return &res.Result, nil
-}
-
-func (tc telegramClient) GetChatMember(chatId, userId string) (*singleChatMemberResponse, error) {
-	res := singleChatMemberResponse{}
-	body := requestBodyType{"chat_id": chatId, "user_id": userId}
-
-	responseBytes := tc.sendRequest("GET", "getChatMember", &body, nil)
-	json.Unmarshal(responseBytes, &res)
-
-	return &res, nil
 }
