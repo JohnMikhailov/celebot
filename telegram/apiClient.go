@@ -19,6 +19,7 @@ type telegramClient struct {
 	token   string
 	baseUrl string
 
+	retriesCount int
 	httpClient *http.Client
 }
 
@@ -38,29 +39,32 @@ func NewClient(token string) APICaller {
 		urlHead: urlHead,
 		baseUrl: urlHead + token,
 		httpClient: httpClient,
+		retriesCount: 3,
 	}
 }
 
-func (tc *telegramClient) send(request *http.Request) []byte {
+func (tc *telegramClient) send(request *http.Request) ([]byte, error) {
 	response, err := tc.httpClient.Do(request)
 
 	if err != nil {
-		log.Fatalf("HTTP request failed " + err.Error())
+		log.Println("HTTP request failed " + err.Error())
+		return nil, err
 	}
 
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Fatalf("Failed to parse response body " + err.Error())
+		log.Println("Failed to parse response body " + err.Error())
+		return nil, err
 	}
 
 	if response.StatusCode != http.StatusOK {
 		log.Println("Bad status code: ", response.StatusCode, " body: ",string(body))
-		return []byte{}
+		return []byte{}, err
 	}
 
-	return body
+	return body, nil
 }
 
 func (tc *telegramClient) prepareRequestBody(requestBody *requestBodyType) io.Reader {
@@ -109,7 +113,21 @@ func (tc *telegramClient) prepareRequest(method, urlTail string, requestBody *re
 
 func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyType, queryParams *requestQueryParamsType, responseModel interface{}) error {
 	request := tc.prepareRequest(method, urlTail, body, queryParams)
-	responseBytes := tc.send(request)
-	json.Unmarshal(responseBytes, responseModel)
+
+	for i := 1; i <= tc.retriesCount; i ++ {
+		responseBytes, err := tc.send(request)
+		if err == nil {
+			json.Unmarshal(responseBytes, responseModel)
+			return nil
+		}
+
+		if i == tc.retriesCount {
+			log.Println("Maximum retries attempts exceeded for endpoint:", urlTail)
+			return err
+		}
+
+		log.Println("Attempt", i, "to call", urlTail, "failed with:", err.Error())
+	}
+
 	return nil
 }
