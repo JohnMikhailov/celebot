@@ -111,3 +111,14 @@ func (message message) getCommand() string {
 	}
 	return ""
 }
+
+type retryAfter struct {
+	RetryAfter int `json:"retry_after"`
+}
+
+type tooManyRequestsResponse struct {
+	Ok bool `json:"ok"`
+	ErrorCode int `json:"error_code"`
+	Description string `json:"description"`
+	Parameters retryAfter `json:"parameters"`
+}
