@@ -4,13 +4,12 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
 )
 
 type config struct {
 	BOTTOKEN_CELEBOT                 string
 	LONGPOLLING_WORKERS              int
-	DEFAULT_DELAY_BETWEEN_CHECKS_SEC time.Duration
+	DEFAULT_DELAY_BETWEEN_CHECKS_SEC int
 	BD_NOTIFICATION_HOUR_MOSCOW_TZ   int
 	CLUBCODE                         string
 	ADMINCODE                        string
@@ -30,7 +29,7 @@ func init() {
 	if err != nil {
 		log.Fatalf("Parse var error for: DEFAULT_DELAY_BETWEEN_CHECKS_SEC")
 	}
-	config_.DEFAULT_DELAY_BETWEEN_CHECKS_SEC = time.Duration(seconds) * time.Second
+	config_.DEFAULT_DELAY_BETWEEN_CHECKS_SEC = seconds
 	config_.BD_NOTIFICATION_HOUR_MOSCOW_TZ, err = strconv.Atoi(os.Getenv("BD_NOTIFICATION_HOUR_MOSCOW_TZ"))
 	if err != nil {
 		log.Fatalf("Parse var error for: BD_NOTIFICATION_HOUR_MOSCOW_TZ")

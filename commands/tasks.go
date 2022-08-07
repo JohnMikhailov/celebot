@@ -46,6 +46,10 @@ func CheckBirthDays(struct{}) {
 	}
 }
 
+func wait(seconds int) {
+	time.Sleep(time.Duration(seconds) * time.Second)
+}
+
 func RunChecks() {
 	timeout := app.GetConfig().DEFAULT_DELAY_BETWEEN_CHECKS_SEC
 	tasksQueue := make(chan struct{}, 1)
@@ -63,9 +67,9 @@ func RunChecks() {
 			if now == hourToNotify {
 				tasksQueue <- struct{}{}
 				hour := 60 * 60
-				time.Sleep(time.Duration(hour) * time.Second)
+				wait(hour)
 			}
-			time.Sleep(timeout)
+			wait(timeout)
 		}
 	}()
 }
