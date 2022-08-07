@@ -124,6 +124,7 @@ func (tc *telegramClient) getTimeoutFromBody(body []byte) int {
 }
 
 func (tc *telegramClient) wait(timeout int) error {
+	log.Println("Wait", timeout, "seconds")
 	time.Sleep(time.Duration(timeout) * time.Second)
 	return nil
 }
@@ -135,12 +136,13 @@ func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyT
 		return err
 	}
 
-	for i := 1; i <= tc.retriesCount; i ++ {
-		timeout := 0
+	timeout := tc.delayBetweenRetriesSec
 
+	for i := 1; i <= tc.retriesCount; i ++ {
 		response, err := tc.send(request)
 
 		if err != nil {
+			tc.wait(timeout)
 			return err
 		}
 
@@ -166,7 +168,7 @@ func (tc *telegramClient) sendRequest(method, urlTail string, body *requestBodyT
 		tc.wait(timeout)
 	}
 
-	log.Println("Maximum retries attempts exceeded for endpoint:", urlTail)
+	log.Println("Maximum retry attempts exceeded for endpoint:", urlTail)
 
 	return nil
 }
